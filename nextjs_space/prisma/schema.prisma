@@ -1,0 +1,31 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/controle_diabetes_gestacional/nextjs_space/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum ReadingType {
+  JEJUM
+  POS_CAFE_2H
+  POS_ALMOCO_2H
+  POS_JANTA_2H
+}
+
+model GestationalGlucoseReading {
+  id          String      @id @default(uuid())
+  readingDate DateTime    @map("reading_date") @db.Date
+  readingType ReadingType @map("reading_type")
+  valueMgDl   Int         @map("value_mg_dl")
+  readingTime String?     @map("reading_time")
+  notes       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@unique([readingDate, readingType])
+  @@map("gestational_glucose_readings")
+}
