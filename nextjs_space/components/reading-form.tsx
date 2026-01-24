@@ -174,7 +174,8 @@ export default function ReadingForm({ existingReadings, onSave }: ReadingFormPro
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            max={formatDateISO(new Date())}
+            min="2026-01-16"
+            max="2026-03-20"
             className="px-3 py-2 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-700"
           />
         </div>

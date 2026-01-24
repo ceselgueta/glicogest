@@ -85,6 +85,8 @@ export default function PeriodFilter({
               type="date"
               value={customStart}
               onChange={(e) => onCustomDateChange(e.target.value, customEnd)}
+              min="2026-01-16"
+              max="2026-03-20"
               className="px-3 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
             />
             <span className="text-gray-500">até</span>
@@ -92,6 +94,8 @@ export default function PeriodFilter({
               type="date"
               value={customEnd}
               onChange={(e) => onCustomDateChange(customStart, e.target.value)}
+              min="2026-01-16"
+              max="2026-03-20"
               className="px-3 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm"
             />
           </motion.div>
