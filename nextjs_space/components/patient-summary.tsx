@@ -49,7 +49,7 @@ export default function PatientSummary({ settings, onEdit }: PatientSummaryProps
             <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
               <Calendar className="w-3 h-3" /> Semana
             </p>
-            <p className="text-sm font-semibold text-gray-800">{settings.pregnancyWeeks}\u00aa sem.</p>
+            <p className="text-sm font-semibold text-gray-800">{settings.pregnancyWeeks}ª sem.</p>
           </div>
         )}
 
@@ -66,7 +66,7 @@ export default function PatientSummary({ settings, onEdit }: PatientSummaryProps
           <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
             <Clock className="w-3 h-3" /> Protocolo
           </p>
-          <p className="text-sm font-semibold text-gray-800">{protocolLabel} ap\u00f3s</p>
+          <p className="text-sm font-semibold text-gray-800">{protocolLabel} após</p>
         </div>
 
         <div className="bg-green-50 rounded-xl p-3">
@@ -78,7 +78,7 @@ export default function PatientSummary({ settings, onEdit }: PatientSummaryProps
 
         <div className="bg-orange-50 rounded-xl p-3">
           <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-            <Target className="w-3 h-3" /> Meta p\u00f3s-ref.
+            <Target className="w-3 h-3" /> Meta pós-ref.
           </p>
           <p className="text-sm font-semibold text-gray-800">{settings.postMealTarget} mg/dL</p>
         </div>

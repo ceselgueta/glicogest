@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const { startDate, endDate } = body ?? {};
 
     if (!startDate || !endDate) {
-      return NextResponse.json({ success: false, error: 'Per\u00edodo n\u00e3o informado' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Período não informado' }, { status: 400 });
     }
 
     // Fetch patient settings
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       byDate[dateStr][reading?.readingType ?? ''] = reading?.valueMgDl ?? 0;
     }
 
-    // Estat\u00edsticas com metas personalizadas
+    // Estatísticas com metas personalizadas
     const totalReadings = readings?.length ?? 0;
     let aboveThreshold = 0;
     for (const r of readings) {
@@ -76,15 +76,15 @@ export async function POST(request: Request) {
         <table style="width: 100%; font-size: 13px;">
           <tr>
             <td style="padding: 3px 10px 3px 0;"><strong>Nome:</strong> ${patientSettings.patientName}</td>
-            ${patientSettings.pregnancyWeeks ? `<td style="padding: 3px 10px 3px 0;"><strong>Semana gestacional:</strong> ${patientSettings.pregnancyWeeks}\u00aa</td>` : ''}
+            ${patientSettings.pregnancyWeeks ? `<td style="padding: 3px 10px 3px 0;"><strong>Semana gestacional:</strong> ${patientSettings.pregnancyWeeks}ª</td>` : ''}
           </tr>
           <tr>
-            ${patientSettings.estimatedDueDate ? `<td style="padding: 3px 10px 3px 0;"><strong>Data prov\u00e1vel do parto:</strong> ${formatDateBR(patientSettings.estimatedDueDate.toISOString().split('T')[0])}</td>` : '<td></td>'}
+            ${patientSettings.estimatedDueDate ? `<td style="padding: 3px 10px 3px 0;"><strong>Data provável do parto:</strong> ${formatDateBR(patientSettings.estimatedDueDate.toISOString().split('T')[0])}</td>` : '<td></td>'}
             ${patientSettings.doctorName ? `<td style="padding: 3px 10px 3px 0;"><strong>Obstetra:</strong> ${patientSettings.doctorName}</td>` : ''}
           </tr>
           <tr>
-            <td style="padding: 3px 10px 3px 0;"><strong>Protocolo:</strong> ${protocol === '1h' ? '1 hora' : '2 horas'} ap\u00f3s refei\u00e7\u00f5es</td>
-            <td style="padding: 3px 10px 3px 0;"><strong>Metas:</strong> Jejum \u2264${fastingTarget} | P\u00f3s-ref. \u2264${postMealTarget} mg/dL</td>
+            <td style="padding: 3px 10px 3px 0;"><strong>Protocolo:</strong> ${protocol === '1h' ? '1 hora' : '2 horas'} após refeições</td>
+            <td style="padding: 3px 10px 3px 0;"><strong>Metas:</strong> Jejum ≤${fastingTarget} | Pós-ref. ≤${postMealTarget} mg/dL</td>
           </tr>
         </table>
       </div>
@@ -129,8 +129,8 @@ export async function POST(request: Request) {
         </style>
       </head>
       <body>
-        <h1>Relat\u00f3rio de Glicemia Gestacional</h1>
-        <p class="subtitle">Per\u00edodo: ${formatDateBR(startDate)} a ${formatDateBR(endDate)}</p>
+        <h1>Relatório de Glicemia Gestacional</h1>
+        <p class="subtitle">Período: ${formatDateBR(startDate)} a ${formatDateBR(endDate)}</p>
         
         ${patientInfoHtml}
 
@@ -153,15 +153,15 @@ export async function POST(request: Request) {
           </div>
         </div>
 
-        <h3>Medidas Di\u00e1rias</h3>
+        <h3>Medidas Diárias</h3>
         <table>
           <thead>
             <tr>
               <th>Data</th>
-              <th>${labels['JEJUM']}<br><small style="font-weight:normal;color:#888;">meta \u2264${fastingTarget}</small></th>
-              <th>${labels['POS_CAFE_2H']}<br><small style="font-weight:normal;color:#888;">meta \u2264${postMealTarget}</small></th>
-              <th>${labels['POS_ALMOCO_2H']}<br><small style="font-weight:normal;color:#888;">meta \u2264${postMealTarget}</small></th>
-              <th>${labels['POS_JANTA_2H']}<br><small style="font-weight:normal;color:#888;">meta \u2264${postMealTarget}</small></th>
+              <th>${labels['JEJUM']}<br><small style="font-weight:normal;color:#888;">meta ≤${fastingTarget}</small></th>
+              <th>${labels['POS_CAFE_2H']}<br><small style="font-weight:normal;color:#888;">meta ≤${postMealTarget}</small></th>
+              <th>${labels['POS_ALMOCO_2H']}<br><small style="font-weight:normal;color:#888;">meta ≤${postMealTarget}</small></th>
+              <th>${labels['POS_JANTA_2H']}<br><small style="font-weight:normal;color:#888;">meta ≤${postMealTarget}</small></th>
             </tr>
           </thead>
           <tbody>
@@ -170,12 +170,12 @@ export async function POST(request: Request) {
         </table>
 
         <div class="type-stats">
-          <h3>Estat\u00edsticas por Tipo de Medida</h3>
+          <h3>Estatísticas por Tipo de Medida</h3>
           ${READING_TYPES.map(type => {
             const stats = byType[type] ?? { total: 0, above: 0, percent: 0, target: 120 };
             return `
               <div class="type-row">
-                <span>${labels[type] ?? type} (meta \u2264${stats.target})</span>
+                <span>${labels[type] ?? type} (meta ≤${stats.target})</span>
                 <span>${stats.total} medidas | ${stats.above} elevadas | <strong style="color: ${stats.percent > 30 ? '#dc2626' : stats.percent > 15 ? '#f59e0b' : '#16a34a'}">${stats.percent}%</strong> acima da meta</span>
               </div>
             `;
@@ -183,14 +183,14 @@ export async function POST(request: Request) {
         </div>
 
         <div class="footer">
-          <p>Este relat\u00f3rio \u00e9 apenas um apoio para acompanhamento glic\u00eamico gestacional e n\u00e3o substitui avalia\u00e7\u00e3o m\u00e9dica.</p>
-          <p>Relat\u00f3rio gerado em ${new Date().toLocaleString('pt-BR')}</p>
+          <p>Este relatório é apenas um apoio para acompanhamento glicêmico gestacional e não substitui avaliação médica.</p>
+          <p>Relatório gerado em ${new Date().toLocaleString('pt-BR')}</p>
         </div>
       </body>
       </html>
     `;
 
-    // Chamar API de gera\u00e7\u00e3o de PDF
+    // Chamar API de geração de PDF
     const createResponse = await fetch('https://apps.abacus.ai/api/createConvertHtmlToPdfRequest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -203,12 +203,12 @@ export async function POST(request: Request) {
     });
 
     if (!createResponse.ok) {
-      return NextResponse.json({ success: false, error: 'Erro ao criar requisi\u00e7\u00e3o de PDF' }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Erro ao criar requisição de PDF' }, { status: 500 });
     }
 
     const { request_id } = await createResponse.json();
     if (!request_id) {
-      return NextResponse.json({ success: false, error: 'ID de requisi\u00e7\u00e3o n\u00e3o retornado' }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'ID de requisição não retornado' }, { status: 500 });
     }
 
     // Polling
@@ -237,14 +237,14 @@ export async function POST(request: Request) {
           },
         });
       } else if (status === 'FAILED') {
-        return NextResponse.json({ success: false, error: 'Falha na gera\u00e7\u00e3o do PDF' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Falha na geração do PDF' }, { status: 500 });
       }
       attempts++;
     }
 
-    return NextResponse.json({ success: false, error: 'Timeout na gera\u00e7\u00e3o do PDF' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Timeout na geração do PDF' }, { status: 500 });
   } catch (error) {
     console.error('Error generating PDF:', error);
-    return NextResponse.json({ success: false, error: 'Erro ao gerar relat\u00f3rio' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Erro ao gerar relatório' }, { status: 500 });
   }
 }

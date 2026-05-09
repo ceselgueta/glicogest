@@ -41,7 +41,7 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
     e.preventDefault();
 
     if (!patientName.trim()) {
-      toast.error('Nome da paciente \u00e9 obrigat\u00f3rio');
+      toast.error('Nome da paciente é obrigatório');
       return;
     }
     if (!fastingTarget || Number(fastingTarget) < 50 || Number(fastingTarget) > 300) {
@@ -49,7 +49,7 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
       return;
     }
     if (!postMealTarget || Number(postMealTarget) < 50 || Number(postMealTarget) > 300) {
-      toast.error('Meta p\u00f3s-refei\u00e7\u00e3o deve estar entre 50 e 300 mg/dL');
+      toast.error('Meta pós-refeição deve estar entre 50 e 300 mg/dL');
       return;
     }
 
@@ -78,7 +78,7 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
         toast.error(data?.error ?? 'Erro ao salvar');
       }
     } catch (error) {
-      toast.error('Erro de conex\u00e3o');
+      toast.error('Erro de conexão');
     } finally {
       setSaving(false);
     }
@@ -101,7 +101,7 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
               {isEditing ? 'Editar Cadastro' : 'Cadastro da Paciente'}
             </h1>
             <p className="text-gray-500 mt-2">
-              Configure os dados da gestante e o protocolo de medi\u00e7\u00e3o indicado pelo obstetra.
+              Configure os dados da gestante e o protocolo de medição indicado pelo obstetra.
             </p>
           </div>
 
@@ -158,7 +158,7 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Data prov\u00e1vel do parto
+                    Data provável do parto
                   </label>
                   <input
                     type="date"
@@ -187,12 +187,12 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
             <div className="space-y-4 pt-4 border-t border-gray-100">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                Protocolo de Medi\u00e7\u00e3o
+                Protocolo de Medição
               </h3>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quando medir ap\u00f3s as refei\u00e7\u00f5es? <span className="text-red-500">*</span>
+                  Quando medir após as refeições? <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -205,7 +205,7 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
                     }`}
                   >
                     <Clock className="w-5 h-5 mx-auto mb-1" />
-                    1 hora ap\u00f3s
+                    1 hora após
                   </button>
                   <button
                     type="button"
@@ -217,11 +217,11 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
                     }`}
                   >
                     <Clock className="w-5 h-5 mx-auto mb-1" />
-                    2 horas ap\u00f3s
+                    2 horas após
                   </button>
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
-                  Escolha se as medi\u00e7\u00f5es ap\u00f3s as refei\u00e7\u00f5es ser\u00e3o feitas 1 hora ou 2 horas depois, conforme orienta\u00e7\u00e3o m\u00e9dica.
+                  Escolha se as medições após as refeições serão feitas 1 hora ou 2 horas depois, conforme orientação médica.
                 </p>
               </div>
             </div>
@@ -230,16 +230,16 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
             <div className="space-y-4 pt-4 border-t border-gray-100">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
                 <Target className="w-4 h-4" />
-                Metas Glic\u00eamicas
+                Metas Glicêmicas
               </h3>
               <p className="text-xs text-gray-400">
-                As metas podem ser ajustadas conforme orienta\u00e7\u00e3o do obstetra.
+                As metas podem ser ajustadas conforme orientação do obstetra.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Meta m\u00e1xima em jejum <span className="text-red-500">*</span>
+                    Meta máxima em jejum <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -256,7 +256,7 @@ export default function PatientRegistration({ existingSettings, onSave, onCancel
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Meta m\u00e1xima p\u00f3s-refei\u00e7\u00f5es <span className="text-red-500">*</span>
+                    Meta máxima pós-refeições <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input

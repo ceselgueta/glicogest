@@ -159,7 +159,7 @@ export default function Home() {
             Acompanhamento de <span className="text-pink-500">Glicemia</span>
           </h2>
           <p className="text-gray-500">
-            Registre e acompanhe as medidas glic\u00eamicas di\u00e1rias de forma simples e organizada
+            Registre e acompanhe as medidas glicêmicas diárias de forma simples e organizada
           </p>
         </motion.div>
 
@@ -188,7 +188,7 @@ export default function Home() {
       </main>
 
       <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-gray-400 text-sm">
-        <p>Controle Glic\u00eamico Gestacional \u00b7 Monitoramento di\u00e1rio para sa\u00fade</p>
+        <p>Controle Glicêmico Gestacional · Monitoramento diário para saúde</p>
       </footer>
     </div>
   );

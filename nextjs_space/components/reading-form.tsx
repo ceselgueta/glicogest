@@ -120,7 +120,7 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
         toast.error(data?.error ?? 'Erro ao salvar');
       }
     } catch (error) {
-      toast.error('Erro de conex\u00e3o');
+      toast.error('Erro de conexão');
     } finally {
       setSaving(null);
     }
@@ -137,7 +137,7 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
       }));
 
     if (readings.length === 0) {
-      toast.error('Preencha ao menos uma medida v\u00e1lida');
+      toast.error('Preencha ao menos uma medida válida');
       return;
     }
 
@@ -157,7 +157,7 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
         toast.error(data?.error ?? 'Erro ao salvar');
       }
     } catch (error) {
-      toast.error('Erro de conex\u00e3o');
+      toast.error('Erro de conexão');
     } finally {
       setSavingBatch(false);
     }
@@ -174,7 +174,7 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
           <Clock className="w-6 h-6 text-pink-500" />
-          Lan\u00e7ar Medidas
+          Lançar Medidas
         </h2>
         <div className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-gray-400" />
@@ -203,7 +203,7 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 {labels[type] ?? type}
               </label>
-              <p className="text-xs text-gray-400 mb-2">Meta: \u2264{target} mg/dL</p>
+              <p className="text-xs text-gray-400 mb-2">Meta: ≤{target} mg/dL</p>
               <div className="relative">
                 <input
                   type="text"

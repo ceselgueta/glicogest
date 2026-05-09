@@ -49,13 +49,13 @@ export default function ReadingsTable({ readings, loading, onDelete, patientSett
       const res = await fetch(`/api/readings/${reading?.id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data?.success) {
-        toast.success('Medida exclu\u00edda');
+        toast.success('Medida excluída');
         onDelete?.();
       } else {
         toast.error(data?.error ?? 'Erro ao excluir');
       }
     } catch (error) {
-      toast.error('Erro de conex\u00e3o');
+      toast.error('Erro de conexão');
     } finally {
       setDeleting(null);
     }
@@ -84,7 +84,7 @@ export default function ReadingsTable({ readings, loading, onDelete, patientSett
       >
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
           <Table className="w-6 h-6 text-pink-500" />
-          Hist\u00f3rico de Medidas
+          Histórico de Medidas
         </h2>
         {expanded ? (
           <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -104,7 +104,7 @@ export default function ReadingsTable({ readings, loading, onDelete, patientSett
             {sortedDates.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 <Table className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>Nenhuma medida registrada neste per\u00edodo</p>
+                <p>Nenhuma medida registrada neste período</p>
               </div>
             ) : (
               <div className="overflow-x-auto">

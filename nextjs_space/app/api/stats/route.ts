@@ -61,6 +61,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
-    return NextResponse.json({ success: false, error: 'Erro ao buscar estat\u00edsticas' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Erro ao buscar estatísticas' }, { status: 500 });
   }
 }
