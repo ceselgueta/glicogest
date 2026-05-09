@@ -38,9 +38,11 @@ model GestationalGlucoseReading {
   readingDate DateTime    @map("reading_date") @db.Date
   readingType ReadingType @map("reading_type")
   valueMgDl   Int         @map("value_mg_dl")
-  readingTime String?     @map("reading_time")
-  notes       String?
-  createdAt   DateTime    @default(now()) @map("created_at")
+  readingTime  String?     @map("reading_time")
+  notes        String?
+  symptoms     String?     @map("symptoms")
+  observations String?     @map("observations")
+  createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
 
   user User? @relation(fields: [userId], references: [id])

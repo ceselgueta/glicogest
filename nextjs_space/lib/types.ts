@@ -5,6 +5,8 @@ export interface GlucoseReading {
   valueMgDl: number;
   readingTime?: string | null;
   notes?: string | null;
+  symptoms?: string | null;
+  observations?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +37,8 @@ export interface ReadingInput {
   valueMgDl: number;
   readingTime?: string;
   notes?: string;
+  symptoms?: string;
+  observations?: string;
 }
 
 export interface PatientSettings {

@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const errors: string[] = [];
 
     for (const reading of readings) {
-      const { readingDate, readingType, valueMgDl, readingTime, notes } = reading ?? {};
+      const { readingDate, readingType, valueMgDl, readingTime, notes, symptoms, observations } = reading ?? {};
 
       if (!readingDate || !readingType || valueMgDl === undefined || valueMgDl === null) {
         continue;
@@ -74,6 +74,8 @@ export async function POST(request: Request) {
             valueMgDl: value,
             readingTime: readingTime || null,
             notes: notes || null,
+            symptoms: symptoms || null,
+            observations: observations || null,
           },
           create: {
             userId,
@@ -82,6 +84,8 @@ export async function POST(request: Request) {
             valueMgDl: value,
             readingTime: readingTime || null,
             notes: notes || null,
+            symptoms: symptoms || null,
+            observations: observations || null,
           },
         });
 

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Table, ChevronDown, ChevronUp, Trash2, Loader2 } from 'lucide-react';
+import { Table, ChevronDown, ChevronUp, Trash2, Loader2, Stethoscope, FileText, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { READING_TYPES, getReadingTypeLabels, getTargetForType, DEFAULT_FASTING_TARGET, DEFAULT_POST_MEAL_TARGET } from '@/lib/constants';
+import { classifyGlucoseAlert, getAlertBadgeColor, getAlertIcon } from '@/lib/alerts';
 import type { GlucoseReading, DayReadings, PatientSettings } from '@/lib/types';
 
 interface ReadingsTableProps {
@@ -20,9 +21,20 @@ function formatDateBR(dateStr: string): string {
   return `${day ?? ''}/${month ?? ''}/${year ?? ''}`;
 }
 
+function parseSymptoms(symptoms: string | null | undefined): string[] {
+  if (!symptoms) return [];
+  try {
+    const parsed = JSON.parse(symptoms);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function ReadingsTable({ readings, loading, onDelete, patientSettings, protocol = '2h' }: ReadingsTableProps) {
   const [expanded, setExpanded] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [expandedReading, setExpandedReading] = useState<string | null>(null);
 
   const labels = getReadingTypeLabels(protocol);
   const fastingTarget = patientSettings?.fastingTarget ?? DEFAULT_FASTING_TARGET;
@@ -122,6 +134,9 @@ export default function ReadingsTable({ readings, loading, onDelete, patientSett
                   <tbody>
                     {sortedDates.map((date, index) => {
                       const dayData = groupedByDate[date] ?? {};
+                      const dayReadings = (readings ?? []).filter(r => r?.readingDate === date);
+                      const hasExtraInfo = dayReadings.some(r => r?.symptoms || r?.observations);
+                      
                       return (
                         <motion.tr
                           key={date}
@@ -131,7 +146,50 @@ export default function ReadingsTable({ readings, loading, onDelete, patientSett
                           className="border-t border-gray-100 hover:bg-gray-50"
                         >
                           <td className="px-4 py-3 font-medium text-gray-700">
-                            {formatDateBR(date)}
+                            <div className="flex items-center gap-2">
+                              {formatDateBR(date)}
+                              {hasExtraInfo && (
+                                <button
+                                  onClick={() => setExpandedReading(expandedReading === date ? null : date)}
+                                  className="p-1 text-pink-400 hover:text-pink-600 transition-colors"
+                                  title="Ver detalhes"
+                                >
+                                  <Info className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                            {/* Expanded details */}
+                            <AnimatePresence>
+                              {expandedReading === date && hasExtraInfo && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: 'auto' }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  className="mt-2 space-y-1"
+                                >
+                                  {dayReadings.filter(r => r?.symptoms || r?.observations).map(r => {
+                                    const symptoms = parseSymptoms(r.symptoms);
+                                    return (
+                                      <div key={r.id} className="text-xs bg-gray-50 rounded-lg p-2 space-y-1">
+                                        <span className="font-medium text-gray-600">{labels[r.readingType] ?? r.readingType}:</span>
+                                        {symptoms.length > 0 && (
+                                          <div className="flex items-start gap-1">
+                                            <Stethoscope className="w-3 h-3 text-pink-400 mt-0.5 flex-shrink-0" />
+                                            <span className="text-gray-500">{symptoms.join(', ')}</span>
+                                          </div>
+                                        )}
+                                        {r.observations && (
+                                          <div className="flex items-start gap-1">
+                                            <FileText className="w-3 h-3 text-pink-400 mt-0.5 flex-shrink-0" />
+                                            <span className="text-gray-500">{r.observations}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </td>
                           {READING_TYPES.map(type => {
                             const value = (dayData as any)?.[type];
@@ -139,39 +197,50 @@ export default function ReadingsTable({ readings, loading, onDelete, patientSett
                               r => r?.readingDate === date && r?.readingType === type
                             );
                             const target = getTargetForType(type, fastingTarget, postMealTarget);
-                            const isHigh = value !== null && value !== undefined && value > target;
+                            
+                            if (value === null || value === undefined) {
+                              return (
+                                <td key={type} className="px-4 py-3 text-center">
+                                  <span className="text-gray-300">-</span>
+                                </td>
+                              );
+                            }
+
+                            const alert = classifyGlucoseAlert(value, type, fastingTarget, postMealTarget);
+                            const badgeColor = getAlertBadgeColor(alert.level);
+                            const alertIcon = getAlertIcon(alert.level);
+                            const readingSymptoms = reading ? parseSymptoms(reading.symptoms) : [];
                             
                             return (
                               <td key={type} className="px-4 py-3 text-center">
-                                {value !== null && value !== undefined ? (
-                                  <div className="flex items-center justify-center gap-2">
-                                    <span
-                                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        isHigh
-                                          ? 'bg-red-100 text-red-600'
-                                          : 'bg-green-100 text-green-600'
-                                      }`}
-                                    >
-                                      {value}
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <span
+                                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium ${badgeColor}`}
+                                    title={alert.title}
+                                  >
+                                    <span className="text-xs">{alertIcon}</span>
+                                    {value}
+                                  </span>
+                                  {readingSymptoms.length > 0 && (
+                                    <span title={`Sintomas: ${readingSymptoms.join(', ')}`}>
+                                      <Stethoscope className="w-3.5 h-3.5 text-pink-400" />
                                     </span>
-                                    {reading && (
-                                      <button
-                                        onClick={() => handleDelete(reading)}
-                                        disabled={deleting === reading?.id}
-                                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                                        title="Excluir"
-                                      >
-                                        {deleting === reading?.id ? (
-                                          <Loader2 className="w-4 h-4 animate-spin" />
-                                        ) : (
-                                          <Trash2 className="w-4 h-4" />
-                                        )}
-                                      </button>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span className="text-gray-300">-</span>
-                                )}
+                                  )}
+                                  {reading && (
+                                    <button
+                                      onClick={() => handleDelete(reading)}
+                                      disabled={deleting === reading?.id}
+                                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                                      title="Excluir"
+                                    >
+                                      {deleting === reading?.id ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
                               </td>
                             );
                           })}

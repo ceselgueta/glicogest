@@ -38,6 +38,8 @@ export async function GET(request: Request) {
       readingDate: r?.readingDate?.toISOString?.()?.split?.('T')?.[0] ?? '',
       createdAt: r?.createdAt?.toISOString?.() ?? '',
       updatedAt: r?.updatedAt?.toISOString?.() ?? '',
+      symptoms: r?.symptoms ?? null,
+      observations: r?.observations ?? null,
     })) ?? [];
 
     return NextResponse.json({ success: true, data: formattedReadings });
@@ -77,7 +79,7 @@ export async function POST(request: Request) {
         }, { status: 403 });
       }
     }
-    const { readingDate, readingType, valueMgDl, readingTime, notes } = body ?? {};
+    const { readingDate, readingType, valueMgDl, readingTime, notes, symptoms, observations } = body ?? {};
 
     if (!readingDate || !readingType || valueMgDl === undefined || valueMgDl === null) {
       return NextResponse.json({ success: false, error: 'Dados incompletos' }, { status: 400 });
@@ -105,6 +107,8 @@ export async function POST(request: Request) {
         valueMgDl: value,
         readingTime: readingTime || null,
         notes: notes || null,
+        symptoms: symptoms || null,
+        observations: observations || null,
       },
       create: {
         userId,
@@ -113,6 +117,8 @@ export async function POST(request: Request) {
         valueMgDl: value,
         readingTime: readingTime || null,
         notes: notes || null,
+        symptoms: symptoms || null,
+        observations: observations || null,
       },
     });
 
@@ -123,6 +129,8 @@ export async function POST(request: Request) {
         readingDate: reading?.readingDate?.toISOString?.()?.split?.('T')?.[0] ?? '',
         createdAt: reading?.createdAt?.toISOString?.() ?? '',
         updatedAt: reading?.updatedAt?.toISOString?.() ?? '',
+        symptoms: reading?.symptoms ?? null,
+        observations: reading?.observations ?? null,
       }
     });
   } catch (error) {
