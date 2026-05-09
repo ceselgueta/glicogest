@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { READING_TYPES, getReadingTypeLabels, getTargetForType, DEFAULT_FASTING_TARGET, DEFAULT_POST_MEAL_TARGET } from '@/lib/constants';
+import { getRequiredSession } from '@/lib/get-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,12 @@ function formatDateBR(dateStr: string): string {
 
 export async function POST(request: Request) {
   try {
+    const session = await getRequiredSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
     const body = await request.json();
     const { startDate, endDate } = body ?? {};
 
@@ -18,8 +25,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Período não informado' }, { status: 400 });
     }
 
-    // Fetch patient settings
+    // Fetch patient settings for this user
     const patientSettings = await prisma.patientSettings.findFirst({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -30,6 +38,7 @@ export async function POST(request: Request) {
 
     const readings = await prisma.gestationalGlucoseReading.findMany({
       where: {
+        OR: [{ userId }, { userId: null }],
         readingDate: {
           gte: new Date(startDate),
           lte: new Date(endDate),

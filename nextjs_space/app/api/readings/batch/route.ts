@@ -1,13 +1,43 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { MIN_GLUCOSE, MAX_GLUCOSE } from '@/lib/constants';
+import { getRequiredSession } from '@/lib/get-session';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    const session = await getRequiredSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const userPlan = (session.user as any).plan || 'free';
     const body = await request.json();
     const { readings } = body ?? {};
+
+    // Check 7-day limit for free plan
+    if (userPlan === 'free') {
+      const distinctDays = await prisma.gestationalGlucoseReading.findMany({
+        where: { userId },
+        select: { readingDate: true },
+        distinct: ['readingDate'],
+      });
+      const existingDates = new Set(
+        distinctDays.map((d: any) => d.readingDate?.toISOString?.()?.split?.('T')?.[0] ?? '')
+      );
+      const newDates = new Set(
+        (readings || []).map((r: any) => r?.readingDate).filter(Boolean)
+      );
+      const allDates = new Set([...existingDates, ...newDates]);
+      if (allDates.size > 7) {
+        return NextResponse.json({
+          success: false,
+          error: 'Limite do plano gratuito atingido (7 dias de registros). Faça upgrade para continuar registrando.',
+        }, { status: 403 });
+      }
+    }
 
     if (!readings || !Array.isArray(readings) || readings.length === 0) {
       return NextResponse.json({ success: false, error: 'Nenhuma medida fornecida' }, { status: 400 });
@@ -34,7 +64,8 @@ export async function POST(request: Request) {
         
         const saved = await prisma.gestationalGlucoseReading.upsert({
           where: {
-            readingDate_readingType: {
+            userId_readingDate_readingType: {
+              userId,
               readingDate: dateObj,
               readingType: readingType,
             },
@@ -45,6 +76,7 @@ export async function POST(request: Request) {
             notes: notes || null,
           },
           create: {
+            userId,
             readingDate: dateObj,
             readingType: readingType,
             valueMgDl: value,

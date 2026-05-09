@@ -1,16 +1,25 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { MIN_GLUCOSE, MAX_GLUCOSE } from '@/lib/constants';
+import { getRequiredSession } from '@/lib/get-session';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+    const session = await getRequiredSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    const whereClause: any = {};
+    const whereClause: any = {
+      OR: [{ userId }, { userId: null }],
+    };
     
     if (startDate && endDate) {
       whereClause.readingDate = {
@@ -40,7 +49,34 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getRequiredSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const userPlan = (session.user as any).plan || 'free';
+
     const body = await request.json();
+
+    // Check 7-day limit for free plan
+    if (userPlan === 'free') {
+      const distinctDays = await prisma.gestationalGlucoseReading.findMany({
+        where: { userId },
+        select: { readingDate: true },
+        distinct: ['readingDate'],
+      });
+      const existingDates = new Set(
+        distinctDays.map((d: any) => d.readingDate?.toISOString?.()?.split?.('T')?.[0] ?? '')
+      );
+      const newDate = body?.readingDate;
+      if (newDate && !existingDates.has(newDate) && existingDates.size >= 7) {
+        return NextResponse.json({
+          success: false,
+          error: 'Limite do plano gratuito atingido (7 dias de registros). Faça upgrade para continuar registrando.',
+        }, { status: 403 });
+      }
+    }
     const { readingDate, readingType, valueMgDl, readingTime, notes } = body ?? {};
 
     if (!readingDate || !readingType || valueMgDl === undefined || valueMgDl === null) {
@@ -59,7 +95,8 @@ export async function POST(request: Request) {
 
     const reading = await prisma.gestationalGlucoseReading.upsert({
       where: {
-        readingDate_readingType: {
+        userId_readingDate_readingType: {
+          userId,
           readingDate: dateObj,
           readingType: readingType,
         },
@@ -70,6 +107,7 @@ export async function POST(request: Request) {
         notes: notes || null,
       },
       create: {
+        userId,
         readingDate: dateObj,
         readingType: readingType,
         valueMgDl: value,

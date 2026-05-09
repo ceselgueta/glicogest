@@ -1,13 +1,42 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getRequiredSession } from '@/lib/get-session';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const settings = await prisma.patientSettings.findFirst({
+    const session = await getRequiredSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+
+    // Try to find settings for this user, fallback to null userId (legacy)
+    let settings = await prisma.patientSettings.findFirst({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
     });
+
+    if (!settings) {
+      settings = await prisma.patientSettings.findFirst({
+        where: { userId: null },
+        orderBy: { createdAt: 'desc' },
+      });
+      // Claim legacy settings and readings for this user
+      if (settings) {
+        settings = await prisma.patientSettings.update({
+          where: { id: settings.id },
+          data: { userId },
+        });
+        // Also claim legacy readings with null userId
+        await prisma.gestationalGlucoseReading.updateMany({
+          where: { userId: null },
+          data: { userId },
+        });
+      }
+    }
 
     if (!settings) {
       return NextResponse.json({ success: true, data: null });
@@ -37,6 +66,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const session = await getRequiredSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
     const body = await request.json();
     const { patientName, birthDate, pregnancyWeeks, estimatedDueDate, doctorName, fastingTarget, postMealTarget, postMealProtocol } = body ?? {};
 
@@ -53,9 +88,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Protocolo de medição inválido' }, { status: 400 });
     }
 
-    const existing = await prisma.patientSettings.findFirst();
+    const existing = await prisma.patientSettings.findFirst({
+      where: { userId },
+    });
 
     const data = {
+      userId,
       patientName: patientName.trim(),
       birthDate: birthDate ? new Date(birthDate) : null,
       pregnancyWeeks: pregnancyWeeks ? Number(pregnancyWeeks) : null,

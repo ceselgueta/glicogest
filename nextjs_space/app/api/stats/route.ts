@@ -1,18 +1,27 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { DEFAULT_FASTING_TARGET, DEFAULT_POST_MEAL_TARGET, READING_TYPES } from '@/lib/constants';
+import { getRequiredSession } from '@/lib/get-session';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+    const session = await getRequiredSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
     const fastingTarget = Number(searchParams.get('fastingTarget')) || DEFAULT_FASTING_TARGET;
     const postMealTarget = Number(searchParams.get('postMealTarget')) || DEFAULT_POST_MEAL_TARGET;
 
-    const whereClause: any = {};
+    const whereClause: any = {
+      OR: [{ userId }, { userId: null }],
+    };
     
     if (startDate && endDate) {
       whereClause.readingDate = {

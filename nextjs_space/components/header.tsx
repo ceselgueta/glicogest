@@ -1,9 +1,17 @@
 'use client';
 
-import { Heart, Activity } from 'lucide-react';
+import { Heart, LogOut, User } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { signOut, useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function Header() {
+  const { data: session } = useSession();
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: '/' });
+  };
+
   return (
     <motion.header 
       initial={{ opacity: 0, y: -20 }}
@@ -11,18 +19,30 @@ export default function Header() {
       className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-pink-100"
     >
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-3">
           <div className="bg-gradient-to-br from-pink-500 to-rose-500 p-2 rounded-xl shadow-md">
             <Heart className="w-6 h-6 text-white" fill="white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-800">Controle Glicêmico</h1>
-            <p className="text-xs text-gray-500">Acompanhamento gestacional</p>
+            <h1 className="text-xl font-bold text-gray-800">GlicoGest</h1>
+            <p className="text-xs text-gray-500">Controle Glicêmico Gestacional</p>
           </div>
-        </div>
-        <div className="flex items-center gap-2 text-pink-600">
-          <Activity className="w-5 h-5" />
-          <span className="text-sm font-medium hidden sm:inline">Monitoramento Diário</span>
+        </Link>
+        <div className="flex items-center gap-4">
+          {session?.user && (
+            <div className="hidden sm:flex items-center gap-2 text-gray-500">
+              <User className="w-4 h-4" />
+              <span className="text-sm">{session.user.name || session.user.email}</span>
+            </div>
+          )}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-all"
+            title="Sair"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Sair</span>
+          </button>
         </div>
       </div>
     </motion.header>
