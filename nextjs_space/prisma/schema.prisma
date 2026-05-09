@@ -29,3 +29,19 @@ model GestationalGlucoseReading {
   @@unique([readingDate, readingType])
   @@map("gestational_glucose_readings")
 }
+
+model PatientSettings {
+  id               String   @id @default(uuid())
+  patientName      String   @map("patient_name")
+  birthDate        DateTime? @map("birth_date") @db.Date
+  pregnancyWeeks   Int?     @map("pregnancy_weeks")
+  estimatedDueDate DateTime? @map("estimated_due_date") @db.Date
+  doctorName       String?  @map("doctor_name")
+  fastingTarget    Int      @default(95) @map("fasting_target")
+  postMealTarget   Int      @default(120) @map("post_meal_target")
+  postMealProtocol String   @default("2h") @map("post_meal_protocol")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("patient_settings")
+}

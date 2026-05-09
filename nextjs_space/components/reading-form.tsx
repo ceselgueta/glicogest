@@ -1,22 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Save, Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, Clock, Save, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { GLUCOSE_THRESHOLD, MIN_GLUCOSE, MAX_GLUCOSE, READING_TYPE_LABELS, READING_TYPES } from '@/lib/constants';
-import type { GlucoseReading, DayReadings } from '@/lib/types';
+import { MIN_GLUCOSE, MAX_GLUCOSE, READING_TYPES, getReadingTypeLabels, getTargetForType, DEFAULT_FASTING_TARGET, DEFAULT_POST_MEAL_TARGET } from '@/lib/constants';
+import type { GlucoseReading, PatientSettings } from '@/lib/types';
 
 interface ReadingFormProps {
   existingReadings: GlucoseReading[];
   onSave: () => void;
+  patientSettings?: PatientSettings | null;
 }
 
 function formatDateISO(date: Date): string {
   return date?.toISOString?.()?.split?.('T')?.[0] ?? '';
 }
 
-export default function ReadingForm({ existingReadings, onSave }: ReadingFormProps) {
+export default function ReadingForm({ existingReadings, onSave, patientSettings }: ReadingFormProps) {
   const [selectedDate, setSelectedDate] = useState(formatDateISO(new Date()));
   const [values, setValues] = useState<Record<string, string>>({
     JEJUM: '',
@@ -27,6 +28,11 @@ export default function ReadingForm({ existingReadings, onSave }: ReadingFormPro
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [savingBatch, setSavingBatch] = useState(false);
+
+  const protocol = patientSettings?.postMealProtocol ?? '2h';
+  const fastingTarget = patientSettings?.fastingTarget ?? DEFAULT_FASTING_TARGET;
+  const postMealTarget = patientSettings?.postMealTarget ?? DEFAULT_POST_MEAL_TARGET;
+  const labels = getReadingTypeLabels(protocol);
 
   useEffect(() => {
     const dayReadings = (existingReadings ?? []).filter(
@@ -62,19 +68,21 @@ export default function ReadingForm({ existingReadings, onSave }: ReadingFormPro
     return !isNaN(num) && num >= MIN_GLUCOSE && num <= MAX_GLUCOSE;
   };
 
-  const getStatusColor = (value: string): string => {
+  const getStatusColor = (value: string, type: string): string => {
     if (!value) return 'border-gray-200 bg-gray-50';
     const num = Number(value);
     if (isNaN(num)) return 'border-gray-200 bg-gray-50';
-    if (num > GLUCOSE_THRESHOLD) return 'border-red-300 bg-red-50';
+    const target = getTargetForType(type, fastingTarget, postMealTarget);
+    if (num > target) return 'border-red-300 bg-red-50';
     return 'border-green-300 bg-green-50';
   };
 
-  const getStatusIcon = (value: string) => {
+  const getStatusIcon = (value: string, type: string) => {
     if (!value) return null;
     const num = Number(value);
     if (isNaN(num)) return null;
-    if (num > GLUCOSE_THRESHOLD) {
+    const target = getTargetForType(type, fastingTarget, postMealTarget);
+    if (num > target) {
       return <AlertCircle className="w-5 h-5 text-red-500" />;
     }
     return <CheckCircle className="w-5 h-5 text-green-500" />;
@@ -112,7 +120,7 @@ export default function ReadingForm({ existingReadings, onSave }: ReadingFormPro
         toast.error(data?.error ?? 'Erro ao salvar');
       }
     } catch (error) {
-      toast.error('Erro de conexão');
+      toast.error('Erro de conex\u00e3o');
     } finally {
       setSaving(null);
     }
@@ -129,7 +137,7 @@ export default function ReadingForm({ existingReadings, onSave }: ReadingFormPro
       }));
 
     if (readings.length === 0) {
-      toast.error('Preencha ao menos uma medida válida');
+      toast.error('Preencha ao menos uma medida v\u00e1lida');
       return;
     }
 
@@ -149,7 +157,7 @@ export default function ReadingForm({ existingReadings, onSave }: ReadingFormPro
         toast.error(data?.error ?? 'Erro ao salvar');
       }
     } catch (error) {
-      toast.error('Erro de conexão');
+      toast.error('Erro de conex\u00e3o');
     } finally {
       setSavingBatch(false);
     }
@@ -166,7 +174,7 @@ export default function ReadingForm({ existingReadings, onSave }: ReadingFormPro
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
           <Clock className="w-6 h-6 text-pink-500" />
-          Lançar Medidas
+          Lan\u00e7ar Medidas
         </h2>
         <div className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-gray-400" />
@@ -182,49 +190,53 @@ export default function ReadingForm({ existingReadings, onSave }: ReadingFormPro
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        {READING_TYPES.map((type, index) => (
-          <motion.div
-            key={type}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="relative"
-          >
-            <label className="block text-sm font-medium text-gray-600 mb-2">
-              {READING_TYPE_LABELS[type] ?? type}
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="mg/dL"
-                value={values?.[type] ?? ''}
-                onChange={(e) => handleValueChange(type, e.target.value)}
-                className={`w-full px-4 py-3 pr-24 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-pink-300 text-lg font-medium ${getStatusColor(values?.[type] ?? '')}`}
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                {getStatusIcon(values?.[type] ?? '')}
-                <button
-                  onClick={() => saveIndividual(type)}
-                  disabled={saving === type || !values?.[type]}
-                  className="p-2 bg-pink-500 hover:bg-pink-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
-                  title="Salvar medida"
-                >
-                  {saving === type ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                </button>
+        {READING_TYPES.map((type, index) => {
+          const target = getTargetForType(type, fastingTarget, postMealTarget);
+          return (
+            <motion.div
+              key={type}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="relative"
+            >
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                {labels[type] ?? type}
+              </label>
+              <p className="text-xs text-gray-400 mb-2">Meta: \u2264{target} mg/dL</p>
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="mg/dL"
+                  value={values?.[type] ?? ''}
+                  onChange={(e) => handleValueChange(type, e.target.value)}
+                  className={`w-full px-4 py-3 pr-24 border-2 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-pink-300 text-lg font-medium ${getStatusColor(values?.[type] ?? '', type)}`}
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  {getStatusIcon(values?.[type] ?? '', type)}
+                  <button
+                    onClick={() => saveIndividual(type)}
+                    disabled={saving === type || !values?.[type]}
+                    className="p-2 bg-pink-500 hover:bg-pink-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+                    title="Salvar medida"
+                  >
+                    {saving === type ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-            {values?.[type] && !validateValue(values[type]) && (
-              <p className="text-xs text-red-500 mt-1">
-                Valor deve estar entre {MIN_GLUCOSE} e {MAX_GLUCOSE}
-              </p>
-            )}
-          </motion.div>
-        ))}
+              {values?.[type] && !validateValue(values[type]) && (
+                <p className="text-xs text-red-500 mt-1">
+                  Valor deve estar entre {MIN_GLUCOSE} e {MAX_GLUCOSE}
+                </p>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-100">

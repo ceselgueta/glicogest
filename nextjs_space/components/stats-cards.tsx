@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import { Activity, AlertTriangle, TrendingUp, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { GLUCOSE_THRESHOLD, READING_TYPE_LABELS } from '@/lib/constants';
-import type { Stats } from '@/lib/types';
+import { getReadingTypeLabels } from '@/lib/constants';
+import type { Stats, PatientSettings } from '@/lib/types';
 
 interface StatsCardsProps {
   stats: Stats | null;
   loading: boolean;
+  patientSettings?: PatientSettings | null;
+  protocol?: string;
 }
 
 function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string }) {
@@ -34,7 +36,9 @@ function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string
   return <span className="animate-count">{displayValue}{suffix}</span>;
 }
 
-export default function StatsCards({ stats, loading }: StatsCardsProps) {
+export default function StatsCards({ stats, loading, patientSettings, protocol = '2h' }: StatsCardsProps) {
+  const labels = getReadingTypeLabels(protocol);
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -63,7 +67,7 @@ export default function StatsCards({ stats, loading }: StatsCardsProps) {
     },
     {
       icon: AlertTriangle,
-      label: `Acima de ${GLUCOSE_THRESHOLD} mg/dL`,
+      label: 'Acima da meta',
       value: aboveThreshold,
       suffix: '',
       color: aboveThreshold > 0 ? 'text-red-500' : 'text-green-500',
@@ -112,7 +116,7 @@ export default function StatsCards({ stats, loading }: StatsCardsProps) {
         >
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-pink-500" />
-            Estatísticas por Tipo de Medida
+            Estat\u00edsticas por Tipo de Medida
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {Object.entries(stats.byType).map(([type, data]) => {
@@ -123,7 +127,7 @@ export default function StatsCards({ stats, loading }: StatsCardsProps) {
               return (
                 <div key={type} className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-600 font-medium mb-2">
-                    {READING_TYPE_LABELS[type] ?? type}
+                    {labels[type] ?? type}
                   </p>
                   <div className="flex items-end justify-between">
                     <div>

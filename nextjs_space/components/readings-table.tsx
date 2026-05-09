@@ -4,13 +4,15 @@ import { useState } from 'react';
 import { Table, ChevronDown, ChevronUp, Trash2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { GLUCOSE_THRESHOLD, READING_TYPE_LABELS, READING_TYPES } from '@/lib/constants';
-import type { GlucoseReading, DayReadings } from '@/lib/types';
+import { READING_TYPES, getReadingTypeLabels, getTargetForType, DEFAULT_FASTING_TARGET, DEFAULT_POST_MEAL_TARGET } from '@/lib/constants';
+import type { GlucoseReading, DayReadings, PatientSettings } from '@/lib/types';
 
 interface ReadingsTableProps {
   readings: GlucoseReading[];
   loading: boolean;
   onDelete: () => void;
+  patientSettings?: PatientSettings | null;
+  protocol?: string;
 }
 
 function formatDateBR(dateStr: string): string {
@@ -18,9 +20,13 @@ function formatDateBR(dateStr: string): string {
   return `${day ?? ''}/${month ?? ''}/${year ?? ''}`;
 }
 
-export default function ReadingsTable({ readings, loading, onDelete }: ReadingsTableProps) {
+export default function ReadingsTable({ readings, loading, onDelete, patientSettings, protocol = '2h' }: ReadingsTableProps) {
   const [expanded, setExpanded] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+
+  const labels = getReadingTypeLabels(protocol);
+  const fastingTarget = patientSettings?.fastingTarget ?? DEFAULT_FASTING_TARGET;
+  const postMealTarget = patientSettings?.postMealTarget ?? DEFAULT_POST_MEAL_TARGET;
 
   const groupedByDate = (readings ?? []).reduce((acc: Record<string, DayReadings>, r) => {
     const date = r?.readingDate ?? '';
@@ -43,13 +49,13 @@ export default function ReadingsTable({ readings, loading, onDelete }: ReadingsT
       const res = await fetch(`/api/readings/${reading?.id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data?.success) {
-        toast.success('Medida excluída');
+        toast.success('Medida exclu\u00edda');
         onDelete?.();
       } else {
         toast.error(data?.error ?? 'Erro ao excluir');
       }
     } catch (error) {
-      toast.error('Erro de conexão');
+      toast.error('Erro de conex\u00e3o');
     } finally {
       setDeleting(null);
     }
@@ -78,7 +84,7 @@ export default function ReadingsTable({ readings, loading, onDelete }: ReadingsT
       >
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
           <Table className="w-6 h-6 text-pink-500" />
-          Histórico de Medidas
+          Hist\u00f3rico de Medidas
         </h2>
         {expanded ? (
           <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -98,7 +104,7 @@ export default function ReadingsTable({ readings, loading, onDelete }: ReadingsT
             {sortedDates.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 <Table className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>Nenhuma medida registrada neste período</p>
+                <p>Nenhuma medida registrada neste per\u00edodo</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -108,7 +114,7 @@ export default function ReadingsTable({ readings, loading, onDelete }: ReadingsT
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Data</th>
                       {READING_TYPES.map(type => (
                         <th key={type} className="px-4 py-3 text-center text-sm font-semibold text-gray-600">
-                          {READING_TYPE_LABELS[type] ?? type}
+                          {labels[type] ?? type}
                         </th>
                       ))}
                     </tr>
@@ -132,7 +138,8 @@ export default function ReadingsTable({ readings, loading, onDelete }: ReadingsT
                             const reading = readings?.find?.(
                               r => r?.readingDate === date && r?.readingType === type
                             );
-                            const isHigh = value !== null && value !== undefined && value > GLUCOSE_THRESHOLD;
+                            const target = getTargetForType(type, fastingTarget, postMealTarget);
+                            const isHigh = value !== null && value !== undefined && value > target;
                             
                             return (
                               <td key={type} className="px-4 py-3 text-center">

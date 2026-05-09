@@ -36,3 +36,17 @@ export interface ReadingInput {
   readingTime?: string;
   notes?: string;
 }
+
+export interface PatientSettings {
+  id: string;
+  patientName: string;
+  birthDate: string | null;
+  pregnancyWeeks: number | null;
+  estimatedDueDate: string | null;
+  doctorName: string | null;
+  fastingTarget: number;
+  postMealTarget: number;
+  postMealProtocol: string;
+  createdAt: string;
+  updatedAt: string;
+}
