@@ -28,6 +28,7 @@ model User {
   accounts        Account[]
   readings        GestationalGlucoseReading[]
   patientSettings PatientSettings[]
+  payments        Payment[]
 
   @@map("users")
 }
@@ -76,6 +77,24 @@ model GestationalGlucoseReading {
 
   @@unique([userId, readingDate, readingType])
   @@map("gestational_glucose_readings")
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  planId          String   @map("plan_id")
+  amount          Float
+  status          String   @default("pending") // pending, approved, rejected, refunded
+  mpPreferenceId  String?  @map("mp_preference_id")
+  mpPaymentId     String?  @map("mp_payment_id")
+  mpStatus        String?  @map("mp_status")
+  mpStatusDetail  String?  @map("mp_status_detail")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
 }
 
 model PatientSettings {

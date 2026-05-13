@@ -64,16 +64,32 @@ export default function PlanosPage() {
     }
   };
 
-  const handleSelectPlan = (planId: string) => {
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+
+  const handleSelectPlan = async (planId: string) => {
     if (!session) {
       router.push("/signup");
       return;
     }
-    // For now, since payment is not integrated, show a message
-    toast("Pagamento online em breve! Por enquanto, entre em contato para ativar seu plano.", {
-      icon: "💳",
-      duration: 5000,
-    });
+    setProcessingPlan(planId);
+    try {
+      const res = await fetch("/api/payments/create-preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId }),
+      });
+      const data = await res.json();
+      if (data?.initPoint) {
+        // Redirect to Mercado Pago checkout
+        window.location.href = data.initPoint;
+      } else {
+        toast.error(data?.error || "Erro ao iniciar pagamento");
+      }
+    } catch {
+      toast.error("Erro ao iniciar pagamento. Tente novamente.");
+    } finally {
+      setProcessingPlan(null);
+    }
   };
 
   if (loading) {
@@ -167,6 +183,7 @@ export default function PlanosPage() {
               isLoggedIn={isLoggedIn}
               canUseTrial={canUseTrial ?? false}
               activatingTrial={activatingTrial}
+              processingPlan={processingPlan}
               currentPlan={planStatus?.plan}
               onActivateTrial={handleActivateTrial}
               onSelectPlan={handleSelectPlan}
@@ -207,6 +224,7 @@ function PlanCard({
   isLoggedIn,
   canUseTrial,
   activatingTrial,
+  processingPlan,
   currentPlan,
   onActivateTrial,
   onSelectPlan,
@@ -216,6 +234,7 @@ function PlanCard({
   isLoggedIn: boolean;
   canUseTrial: boolean;
   activatingTrial: boolean;
+  processingPlan: string | null;
   currentPlan?: string;
   onActivateTrial: () => void;
   onSelectPlan: (id: string) => void;
@@ -303,13 +322,23 @@ function PlanCard({
       ) : (
         <button
           onClick={() => onSelectPlan(plan.id)}
+          disabled={processingPlan !== null}
           className={`w-full px-4 py-3 font-medium rounded-xl transition-all text-sm ${
-            isHighlighted
+            processingPlan !== null
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : isHighlighted
               ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-rose-600 shadow-md"
               : "bg-pink-50 text-pink-600 hover:bg-pink-100"
           }`}
         >
-          {plan.buttonText}
+          {processingPlan === plan.id ? (
+            <span className="flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Redirecionando...
+            </span>
+          ) : (
+            plan.buttonText
+          )}
         </button>
       )}
     </motion.div>
