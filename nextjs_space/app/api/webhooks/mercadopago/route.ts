@@ -2,13 +2,66 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { paymentApi } from '@/lib/mercadopago';
 import { getPlanById } from '@/lib/plans';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
+
+function verifyWebhookSignature(req: NextRequest, dataId: string): boolean {
+  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  if (!secret) {
+    console.log('[MP Webhook] No webhook secret configured, skipping verification');
+    return true;
+  }
+
+  const xSignature = req.headers.get('x-signature');
+  const xRequestId = req.headers.get('x-request-id');
+
+  if (!xSignature || !xRequestId) {
+    console.log('[MP Webhook] Missing x-signature or x-request-id headers');
+    return true; // Allow through if headers missing (MP doesn't always send them)
+  }
+
+  try {
+    const parts = xSignature.split(',');
+    let ts = '';
+    let hash = '';
+
+    parts.forEach(part => {
+      const [key, value] = part.split('=');
+      if (key?.trim() === 'ts') ts = value?.trim() || '';
+      if (key?.trim() === 'v1') hash = value?.trim() || '';
+    });
+
+    if (!ts || !hash) return true;
+
+    const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+    const generatedHash = crypto
+      .createHmac('sha256', secret)
+      .update(manifest)
+      .digest('hex');
+
+    const isValid = generatedHash === hash;
+    if (!isValid) {
+      console.log('[MP Webhook] Signature verification failed');
+    }
+    return isValid;
+  } catch (e) {
+    console.error('[MP Webhook] Signature verification error:', e);
+    return true;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     console.log('[MP Webhook] Received:', JSON.stringify(body));
+
+    // Verify signature
+    const dataId = body.data?.id ? String(body.data.id) : '';
+    if (dataId && !verifyWebhookSignature(req, dataId)) {
+      console.log('[MP Webhook] Invalid signature, rejecting');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
 
     // Handle payment notifications
     if (body.type === 'payment' || body.action === 'payment.created' || body.action === 'payment.updated') {

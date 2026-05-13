@@ -80,10 +80,17 @@ export async function POST(req: NextRequest) {
       data: { mpPreferenceId: preference.id },
     });
 
+    // Use sandbox for test credentials, production otherwise
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN || '';
+    const isSandbox = accessToken.startsWith('TEST-');
+    const checkoutUrl = isSandbox
+      ? preference.sandbox_init_point
+      : preference.init_point;
+
     return NextResponse.json({
       success: true,
       preferenceId: preference.id,
-      initPoint: preference.init_point,
+      initPoint: checkoutUrl,
       sandboxInitPoint: preference.sandbox_init_point,
     });
   } catch (error) {
