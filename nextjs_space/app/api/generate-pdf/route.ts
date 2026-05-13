@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { READING_TYPES, getReadingTypeLabels, getTargetForType, DEFAULT_FASTING_TARGET, DEFAULT_POST_MEAL_TARGET } from '@/lib/constants';
 import { getRequiredSession } from '@/lib/get-session';
+import { computePlanStatus } from '@/lib/plans';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,20 @@ export async function POST(request: Request) {
     }
 
     const userId = session.user.id;
+
+    // Check plan access for PDF generation
+    const userRecord = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { plan: true, planExpiresAt: true, planStartedAt: true, hasUsedTrial: true, pdfReportsGenerated: true, paymentStatus: true },
+    });
+    const planSt = computePlanStatus(userRecord ?? { plan: 'free', planExpiresAt: null });
+    if (!planSt.canGeneratePdf) {
+      const msg = planSt.plan === 'free_trial' && planSt.pdfLimit !== null && planSt.pdfReportsGenerated >= planSt.pdfLimit
+        ? 'Limite de PDF do teste grátis atingido (1 relatório). Escolha um plano para gerar mais relatórios.'
+        : 'Seu acesso expirou. Escolha um plano para gerar relatórios.';
+      return NextResponse.json({ success: false, error: msg, code: 'PDF_LIMIT' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { startDate, endDate } = body ?? {};
 
@@ -238,6 +253,15 @@ export async function POST(request: Request) {
       const result = statusResult?.result ?? null;
 
       if (status === 'SUCCESS' && result?.result) {
+        // Increment PDF counter for trial users
+        try {
+          await prisma.user.update({
+            where: { id: userId },
+            data: { pdfReportsGenerated: { increment: 1 } },
+          });
+        } catch (e) {
+          console.error('Error incrementing PDF counter:', e);
+        }
         const pdfBuffer = Buffer.from(result.result, 'base64');
         return new NextResponse(pdfBuffer, {
           headers: {

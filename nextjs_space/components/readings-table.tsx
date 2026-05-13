@@ -11,7 +11,7 @@ import type { GlucoseReading, DayReadings, PatientSettings } from '@/lib/types';
 interface ReadingsTableProps {
   readings: GlucoseReading[];
   loading: boolean;
-  onDelete: () => void;
+  onDelete?: () => void;
   patientSettings?: PatientSettings | null;
   protocol?: string;
 }
@@ -226,7 +226,7 @@ export default function ReadingsTable({ readings, loading, onDelete, patientSett
                                       <Stethoscope className="w-3.5 h-3.5 text-pink-400" />
                                     </span>
                                   )}
-                                  {reading && (
+                                  {reading && onDelete && (
                                     <button
                                       onClick={() => handleDelete(reading)}
                                       disabled={deleting === reading?.id}

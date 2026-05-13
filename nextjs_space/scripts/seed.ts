@@ -6,6 +6,10 @@ const prisma = new PrismaClient();
 async function main() {
   const hashedPassword = await bcrypt.hash('johndoe123', 12);
   
+  const now = new Date();
+  const expiresAt = new Date(now);
+  expiresAt.setDate(expiresAt.getDate() + 270);
+
   await prisma.user.upsert({
     where: { email: 'john@doe.com' },
     update: {},
@@ -13,7 +17,12 @@ async function main() {
       email: 'john@doe.com',
       name: 'Test User',
       password: hashedPassword,
-      plan: 'premium',
+      plan: 'gestation_full',
+      planStartedAt: now,
+      planExpiresAt: expiresAt,
+      hasUsedTrial: true,
+      pdfReportsGenerated: 0,
+      paymentStatus: 'paid',
     },
   });
 

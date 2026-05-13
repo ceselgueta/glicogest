@@ -18,6 +18,10 @@ model User {
   password      String?
   plan          String    @default("free")
   planExpiresAt DateTime? @map("plan_expires_at")
+  planStartedAt DateTime? @map("plan_started_at")
+  hasUsedTrial  Boolean   @default(false) @map("has_used_trial")
+  pdfReportsGenerated Int @default(0) @map("pdf_reports_generated")
+  paymentStatus String   @default("not_required") @map("payment_status")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 

@@ -47,17 +47,32 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.plan = (user as any).plan ?? 'free';
         token.planExpiresAt = (user as any).planExpiresAt ?? null;
+        token.planStartedAt = (user as any).planStartedAt ?? null;
+        token.hasUsedTrial = (user as any).hasUsedTrial ?? false;
+        token.pdfReportsGenerated = (user as any).pdfReportsGenerated ?? 0;
+        token.paymentStatus = (user as any).paymentStatus ?? 'not_required';
       }
-      // Refresh plan info from DB on session update
+      // Refresh plan info from DB on session update or if missing
       if (trigger === 'update' || !token.plan) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { plan: true, planExpiresAt: true },
+            select: {
+              plan: true,
+              planExpiresAt: true,
+              planStartedAt: true,
+              hasUsedTrial: true,
+              pdfReportsGenerated: true,
+              paymentStatus: true,
+            },
           });
           if (dbUser) {
             token.plan = dbUser.plan;
             token.planExpiresAt = dbUser.planExpiresAt?.toISOString() ?? null;
+            token.planStartedAt = dbUser.planStartedAt?.toISOString() ?? null;
+            token.hasUsedTrial = dbUser.hasUsedTrial;
+            token.pdfReportsGenerated = dbUser.pdfReportsGenerated;
+            token.paymentStatus = dbUser.paymentStatus;
           }
         } catch {
           // Silently fail - use cached token data
@@ -70,6 +85,10 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id;
         (session.user as any).plan = token.plan ?? 'free';
         (session.user as any).planExpiresAt = token.planExpiresAt ?? null;
+        (session.user as any).planStartedAt = token.planStartedAt ?? null;
+        (session.user as any).hasUsedTrial = token.hasUsedTrial ?? false;
+        (session.user as any).pdfReportsGenerated = token.pdfReportsGenerated ?? 0;
+        (session.user as any).paymentStatus = token.paymentStatus ?? 'not_required';
       }
       return session;
     },

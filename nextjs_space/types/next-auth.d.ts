@@ -10,6 +10,10 @@ declare module 'next-auth' {
       image?: string | null;
       plan: string;
       planExpiresAt: string | null;
+      planStartedAt: string | null;
+      hasUsedTrial: boolean;
+      pdfReportsGenerated: number;
+      paymentStatus: string;
     };
   }
 
@@ -20,6 +24,10 @@ declare module 'next-auth' {
     image?: string | null;
     plan?: string;
     planExpiresAt?: string | null;
+    planStartedAt?: string | null;
+    hasUsedTrial?: boolean;
+    pdfReportsGenerated?: number;
+    paymentStatus?: string;
   }
 }
 
@@ -28,5 +36,9 @@ declare module 'next-auth/jwt' {
     id: string;
     plan: string;
     planExpiresAt: string | null;
+    planStartedAt: string | null;
+    hasUsedTrial: boolean;
+    pdfReportsGenerated: number;
+    paymentStatus: string;
   }
 }

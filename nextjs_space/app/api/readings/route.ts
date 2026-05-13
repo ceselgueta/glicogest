@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { MIN_GLUCOSE, MAX_GLUCOSE } from '@/lib/constants';
 import { getRequiredSession } from '@/lib/get-session';
+import { computePlanStatus } from '@/lib/plans';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,28 +58,22 @@ export async function POST(request: Request) {
     }
 
     const userId = session.user.id;
-    const userPlan = (session.user as any).plan || 'free';
+
+    // Check plan access
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { plan: true, planExpiresAt: true, planStartedAt: true, hasUsedTrial: true, pdfReportsGenerated: true, paymentStatus: true },
+    });
+    const status = computePlanStatus(user ?? { plan: 'free', planExpiresAt: null });
+    if (!status.canRegisterReadings) {
+      return NextResponse.json({
+        success: false,
+        error: 'Seu acesso expirou. Escolha um plano para continuar registrando medições.',
+        code: 'PLAN_EXPIRED',
+      }, { status: 403 });
+    }
 
     const body = await request.json();
-
-    // Check 7-day limit for free plan
-    if (userPlan === 'free') {
-      const distinctDays = await prisma.gestationalGlucoseReading.findMany({
-        where: { userId },
-        select: { readingDate: true },
-        distinct: ['readingDate'],
-      });
-      const existingDates = new Set(
-        distinctDays.map((d: any) => d.readingDate?.toISOString?.()?.split?.('T')?.[0] ?? '')
-      );
-      const newDate = body?.readingDate;
-      if (newDate && !existingDates.has(newDate) && existingDates.size >= 7) {
-        return NextResponse.json({
-          success: false,
-          error: 'Limite do plano gratuito atingido (7 dias de registros). Faça upgrade para continuar registrando.',
-        }, { status: 403 });
-      }
-    }
     const { readingDate, readingType, valueMgDl, readingTime, notes, symptoms, observations } = body ?? {};
 
     if (!readingDate || !readingType || valueMgDl === undefined || valueMgDl === null) {

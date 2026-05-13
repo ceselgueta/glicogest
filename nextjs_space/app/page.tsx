@@ -1,37 +1,38 @@
-'use client';
+"use client";
 
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Heart, ClipboardList, BarChart3, FileText, Shield, Clock, ArrowRight, Check, Star } from 'lucide-react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Heart, ClipboardList, BarChart3, FileText, Shield, Clock, ArrowRight, Check, Star } from "lucide-react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { PLANS, formatPrice } from "@/lib/plans";
 
 const features = [
   {
     icon: ClipboardList,
-    title: 'Registre suas medições diárias',
-    description: 'Anote glicemia em jejum e após as refeições de forma simples, pelo celular ou computador.',
+    title: "Registre suas medições diárias",
+    description: "Anote glicemia em jejum e após as refeições de forma simples, pelo celular ou computador.",
   },
   {
     icon: BarChart3,
-    title: 'Acompanhe seus resultados com clareza',
-    description: 'Veja rapidamente quais valores estão dentro da meta e quais precisam de atenção.',
+    title: "Acompanhe seus resultados com clareza",
+    description: "Veja rapidamente quais valores estão dentro da meta e quais precisam de atenção.",
   },
   {
     icon: FileText,
-    title: 'Gere relatórios para o obstetra',
-    description: 'Baixe um PDF organizado com resumo, estatísticas e tabela completa das medições.',
+    title: "Gere relatórios para o obstetra",
+    description: "Baixe um PDF organizado com resumo, estatísticas e tabela completa das medições.",
   },
   {
     icon: Shield,
-    title: 'Tenha seu histórico sempre salvo',
-    description: 'Não dependa de papel, bloco de notas ou mensagens perdidas no WhatsApp.',
+    title: "Tenha seu histórico sempre salvo",
+    description: "Não dependa de papel, bloco de notas ou mensagens perdidas no WhatsApp.",
   },
   {
     icon: Clock,
-    title: 'Adapte ao seu protocolo médico',
-    description: 'Escolha se as medições após as refeições são feitas em 1 hora ou 2 horas, conforme orientação do obstetra.',
+    title: "Adapte ao seu protocolo médico",
+    description: "Escolha se as medições após as refeições são feitas em 1 hora ou 2 horas, conforme orientação do obstetra.",
   },
 ];
 
@@ -40,12 +41,12 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.replace('/dashboard');
+    if (status === "authenticated") {
+      router.replace("/dashboard");
     }
   }, [status, router]);
 
-  if (status === 'loading' || status === 'authenticated') {
+  if (status === "loading" || status === "authenticated") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-pink-500">
@@ -98,17 +99,22 @@ export default function HomePage() {
             Cuidado e acompanhamento para você e seu bebê
           </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-800 mb-6 leading-tight">
-            Controle sua <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">glicemia gestacional</span> com simplicidade
+            Controle sua{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">
+              glicemia gestacional
+            </span>{" "}
+            com simplicidade
           </h2>
           <p className="text-lg sm:text-xl text-gray-500 max-w-3xl mx-auto mb-10">
-            Registre, acompanhe e compartilhe suas medições com o obstetra. Tudo organizado, salvo e acessível de qualquer lugar.
+            Registre, acompanhe e compartilhe suas medições com o obstetra. Tudo organizado, salvo e acessível de
+            qualquer lugar.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/signup"
               className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl text-lg"
             >
-              Comece grátis
+              Começar teste grátis
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
@@ -149,87 +155,81 @@ export default function HomePage() {
 
       {/* Pricing */}
       <section id="planos" className="max-w-6xl mx-auto px-4 pb-20">
-        <div className="text-center mb-12">
-          <h3 className="text-3xl font-bold text-gray-800 mb-3">Planos</h3>
-          <p className="text-gray-500">Escolha o plano ideal para acompanhar sua gestação</p>
+        <div className="text-center mb-4">
+          <h3 className="text-3xl font-bold text-gray-800 mb-3">Escolha seu plano</h3>
+          <p className="text-gray-500">Registre suas medições, acompanhe seus resultados e gere relatórios para o obstetra.</p>
+          <p className="text-pink-600 font-medium mt-3 text-sm">
+            Sem assinatura obrigatória. Pagamento único pelo período escolhido.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Free Plan */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="bg-white rounded-2xl p-8 card-shadow border-2 border-gray-100"
-          >
-            <div className="text-center mb-6">
-              <h4 className="text-xl font-bold text-gray-800 mb-1">Grátis</h4>
-              <p className="text-sm text-gray-500 mb-4">Para testar</p>
-              <div className="text-4xl font-bold text-gray-800">
-                R$ 0
-              </div>
-            </div>
-            <ul className="space-y-3 mb-8">
-              {[
-                'Cadastro da paciente',
-                'Até 7 dias de registros',
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2 text-gray-600 text-sm">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/signup"
-              className="block w-full text-center px-6 py-3 border-2 border-pink-200 text-pink-600 font-medium rounded-xl hover:bg-pink-50 transition-all"
-            >
-              Comece grátis
-            </Link>
-          </motion.div>
 
-          {/* Paid Plan */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="bg-white rounded-2xl p-8 card-shadow border-2 border-pink-300 relative overflow-hidden"
-          >
-            <div className="absolute top-4 right-4">
-              <span className="bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                <Star className="w-3 h-3" fill="white" /> Recomendado
-              </span>
-            </div>
-            <div className="text-center mb-6">
-              <h4 className="text-xl font-bold text-gray-800 mb-1">Plano Único Gestacional</h4>
-              <p className="text-sm text-gray-500 mb-4">Pagamento único · Até 6 meses de uso</p>
-              <div className="text-4xl font-bold text-pink-600">
-                R$ 39,90
-              </div>
-            </div>
-            <ul className="space-y-3 mb-8">
-              {[
-                'Cadastro da paciente',
-                'Registros ilimitados de glicemia',
-                'Escolha de protocolo 1h ou 2h',
-                'Dashboard com estatísticas',
-                'Relatório PDF ilimitado',
-                'Histórico salvo durante toda a gestação',
-                'Até 6 meses de uso',
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2 text-gray-600 text-sm">
-                  <Check className="w-5 h-5 text-pink-500 flex-shrink-0 mt-0.5" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/signup"
-              className="block w-full text-center px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all shadow-md"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+          {PLANS.map((plan, index) => (
+            <motion.div
+              key={plan.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 }}
+              className={`relative bg-white rounded-2xl p-6 card-shadow transition-all duration-300 flex flex-col ${
+                plan.highlight
+                  ? "border-2 border-pink-400 ring-2 ring-pink-100"
+                  : "border-2 border-gray-100 hover:border-pink-200"
+              }`}
             >
-              Assinar agora
-            </Link>
-          </motion.div>
+              {plan.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1 whitespace-nowrap shadow-md">
+                    <Star className="w-3 h-3" fill="white" />
+                    {plan.badge}
+                  </span>
+                </div>
+              )}
+
+              <div className="text-center mb-5 pt-2">
+                <h4 className="text-lg font-bold text-gray-800 mb-1">{plan.name}</h4>
+                <p className="text-xs text-gray-500 mb-3">{plan.description}</p>
+                <div className="text-3xl font-bold">
+                  {plan.price === 0 ? (
+                    <span className="text-green-600">Grátis</span>
+                  ) : (
+                    <span className={plan.highlight ? "text-pink-600" : "text-gray-800"}>
+                      {formatPrice(plan.price)}
+                    </span>
+                  )}
+                </div>
+                {plan.price > 0 && <p className="text-xs text-gray-400 mt-1">{plan.durationDays} dias de acesso</p>}
+                {plan.id === "free_trial" && <p className="text-xs text-gray-400 mt-1">4 dias · 1 PDF</p>}
+              </div>
+
+              <ul className="space-y-2 mb-6 flex-1">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2 text-gray-600 text-sm">
+                    <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${plan.highlight ? "text-pink-500" : "text-green-500"}`} />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href="/signup"
+                className={`block w-full text-center px-4 py-3 font-medium rounded-xl transition-all text-sm ${
+                  plan.highlight
+                    ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-rose-600 shadow-md"
+                    : plan.id === "free_trial"
+                    ? "border-2 border-pink-300 text-pink-600 hover:bg-pink-50"
+                    : "bg-pink-50 text-pink-600 hover:bg-pink-100"
+                }`}
+              >
+                {plan.buttonText}
+              </Link>
+            </motion.div>
+          ))}
         </div>
+
+        <p className="text-center text-gray-400 text-xs mt-8">
+          Teste grátis por 4 dias com acesso ao sistema e 1 relatório PDF. Após expirar, seus dados permanecem salvos.
+        </p>
       </section>
 
       {/* Footer */}
