@@ -40,19 +40,6 @@ export default function DashboardPage() {
     }
   }, [status, router]);
 
-  // Fetch plan status from API
-  const fetchPlanStatus = useCallback(async () => {
-    try {
-      const res = await fetch("/api/plans/status");
-      const data = await res.json();
-      if (data?.success) {
-        setPlanStatus(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching plan status:", error);
-    }
-  }, []);
-
   // Fetch patient settings
   const fetchPatientSettings = useCallback(async () => {
     setPatientLoading(true);
@@ -72,12 +59,29 @@ export default function DashboardPage() {
     }
   }, []);
 
+  const [planLoaded, setPlanLoaded] = useState(false);
+
+  // Fetch plan status from API - updated to track loaded state
+  const fetchPlanStatusAndCheck = useCallback(async () => {
+    try {
+      const res = await fetch("/api/plans/status");
+      const data = await res.json();
+      if (data?.success) {
+        setPlanStatus(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching plan status:", error);
+    } finally {
+      setPlanLoaded(true);
+    }
+  }, []);
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchPatientSettings();
-      fetchPlanStatus();
+      fetchPlanStatusAndCheck();
     }
-  }, [fetchPatientSettings, fetchPlanStatus, status]);
+  }, [fetchPatientSettings, fetchPlanStatusAndCheck, status]);
 
   const getEffectiveDates = useCallback(() => {
     const range = getDateRange(filter, customStart, customEnd);
@@ -133,16 +137,42 @@ export default function DashboardPage() {
     setCustomEnd(end);
   };
 
-  const handlePatientSave = (settings: PatientSettings) => {
+  const handlePatientSave = async (settings: PatientSettings) => {
     setPatientSettings(settings);
     setShowRegistration(false);
     setEditingPatient(false);
+
+    // After first patient registration, check if user needs a plan
+    if (!editingPatient) {
+      try {
+        const res = await fetch("/api/plans/status");
+        const data = await res.json();
+        if (data?.success) {
+          const ps = data.data;
+          setPlanStatus(ps);
+          // If user has no active plan, redirect to plans page
+          if (!ps.isActive) {
+            router.push("/planos");
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Error checking plan after patient save:", e);
+      }
+    }
   };
 
   const handleEditPatient = () => {
     setEditingPatient(true);
     setShowRegistration(true);
   };
+
+  // Auto-redirect to plans page if user has no active plan and has completed patient registration
+  useEffect(() => {
+    if (planLoaded && !patientLoading && planStatus && patientSettings && !planStatus.isActive && !showRegistration) {
+      router.push("/planos");
+    }
+  }, [planLoaded, patientLoading, planStatus, patientSettings, showRegistration, router]);
 
   // Loading / auth check
   if (status === "loading" || status === "unauthenticated") {
