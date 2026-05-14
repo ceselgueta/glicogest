@@ -247,7 +247,15 @@ export default function DashboardPage() {
               onCustomDateChange={handleCustomDateChange}
             />
           </div>
-          <PdfButton startDate={startDate} endDate={endDate} disabled={loading || !canPdf} />
+          <PdfButton
+            startDate={startDate}
+            endDate={endDate}
+            disabled={loading}
+            canPdf={canPdf}
+            pdfLimit={planStatus?.pdfLimit ?? null}
+            pdfGenerated={planStatus?.pdfReportsGenerated ?? 0}
+            planActive={planStatus?.isActive ?? false}
+          />
         </div>
 
         <StatsCards stats={stats} loading={loading} patientSettings={patientSettings} protocol={protocol} />
