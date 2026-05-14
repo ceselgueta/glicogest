@@ -1,0 +1,27 @@
+{
+  "name": "GlicoGest – Controle de Glicemia Gestacional",
+  "short_name": "GlicoGest",
+  "description": "Acompanhe sua glicemia gestacional de forma simples, gere relatórios para o obstetra e tenha tudo salvo com segurança.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "categories": ["health", "medical"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
