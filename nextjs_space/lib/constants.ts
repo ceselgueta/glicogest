@@ -2,9 +2,9 @@
 export const DEFAULT_FASTING_TARGET = 95;
 export const DEFAULT_POST_MEAL_TARGET = 120;
 
-// Limites de validação
-export const MIN_GLUCOSE = 40;
-export const MAX_GLUCOSE = 400;
+// Limites de validação (amplos para não impedir registro de valores extremos)
+export const MIN_GLUCOSE = 1;
+export const MAX_GLUCOSE = 999;
 
 // Labels para tipos de medida - dinâmicos baseados no protocolo
 export function getReadingTypeLabels(protocol: string = '2h'): Record<string, string> {
