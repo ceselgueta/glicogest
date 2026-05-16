@@ -137,9 +137,15 @@ export async function POST(request: Request) {
         const target = getTargetForType(type, fastingTarget, postMealTarget);
         if (value === undefined || value === null) return '<td style="text-align: center; padding: 8px; border: 1px solid #ddd;">-</td>';
         const isHigh = value > target;
-        const style = isHigh 
-          ? 'background-color: #fecaca; color: #dc2626; font-weight: bold;' 
-          : 'background-color: #dcfce7; color: #16a34a;';
+        const isHypo = value < 70;
+        let style = 'background-color: #dcfce7; color: #16a34a;'; // normal/dentro da meta
+        if (isHypo) {
+          style = value < 54
+            ? 'background-color: #fecaca; color: #dc2626; font-weight: bold;' // hipoglicemia grave
+            : 'background-color: #fed7aa; color: #ea580c; font-weight: bold;'; // hipoglicemia
+        } else if (isHigh) {
+          style = 'background-color: #fecaca; color: #dc2626; font-weight: bold;'; // acima da meta
+        }
         return `<td style="text-align: center; padding: 8px; border: 1px solid #ddd; ${style}">${value}</td>`;
       }).join('');
       return `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: 500;">${formatDateBR(date)}</td>${cells}</tr>`;
@@ -238,10 +244,17 @@ export async function POST(request: Request) {
               ${readingsWithNotes.map((r: any) => {
                 const dateStr = r.readingDate?.toISOString?.()?.split?.('T')?.[0] ?? '';
                 const target = getTargetForType(r.readingType, fastingTarget, postMealTarget);
-                const isHigh = (r.valueMgDl ?? 0) > target;
-                const valueStyle = isHigh
-                  ? 'background-color: #fecaca; color: #dc2626; font-weight: bold;'
-                  : 'background-color: #dcfce7; color: #16a34a;';
+                const val = r.valueMgDl ?? 0;
+                const isHigh = val > target;
+                const isHypo = val < 70;
+                let valueStyle = 'background-color: #dcfce7; color: #16a34a;';
+                if (isHypo) {
+                  valueStyle = val < 54
+                    ? 'background-color: #fecaca; color: #dc2626; font-weight: bold;'
+                    : 'background-color: #fed7aa; color: #ea580c; font-weight: bold;';
+                } else if (isHigh) {
+                  valueStyle = 'background-color: #fecaca; color: #dc2626; font-weight: bold;';
+                }
 
                 let symptomsText = '';
                 if (r.symptoms && r.symptoms.trim()) {
@@ -259,7 +272,6 @@ export async function POST(request: Request) {
                 const label = labels[r.readingType] ?? r.readingType;
 
                 // Determine situation label
-                const val = r.valueMgDl ?? 0;
                 let situationText = '';
                 let situationStyle = '';
                 if (val < 54) {
