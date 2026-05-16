@@ -70,6 +70,13 @@ export async function POST(request: Request) {
       byDate[dateStr][reading?.readingType ?? ''] = reading?.valueMgDl ?? 0;
     }
 
+    // Coletar leituras com observações ou sintomas para a seção de eventos
+    const readingsWithNotes = readings.filter((r: any) => {
+      const hasObs = r.observations && r.observations.trim().length > 0;
+      const hasSym = r.symptoms && r.symptoms.trim().length > 0;
+      return hasObs || hasSym;
+    });
+
     // Estatísticas com metas personalizadas
     const totalReadings = readings?.length ?? 0;
     let aboveThreshold = 0;
@@ -205,6 +212,57 @@ export async function POST(request: Request) {
             `;
           }).join('')}
         </div>
+
+        ${readingsWithNotes.length > 0 ? `
+        <div style="margin-top: 30px; page-break-inside: avoid;">
+          <h3 style="color: #db2777;">Eventos e Observações</h3>
+          <p style="font-size: 12px; color: #666; margin-bottom: 12px;">Registros com sintomas ou observações informados pela paciente para conhecimento do obstetra.</p>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left; width: 80px;">Data</th>
+                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left; width: 100px;">Medição</th>
+                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: center; width: 60px;">Valor</th>
+                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left;">Sintomas</th>
+                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left;">Observações</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${readingsWithNotes.map((r: any) => {
+                const dateStr = r.readingDate?.toISOString?.()?.split?.('T')?.[0] ?? '';
+                const target = getTargetForType(r.readingType, fastingTarget, postMealTarget);
+                const isHigh = (r.valueMgDl ?? 0) > target;
+                const valueStyle = isHigh
+                  ? 'background-color: #fecaca; color: #dc2626; font-weight: bold;'
+                  : 'background-color: #dcfce7; color: #16a34a;';
+
+                let symptomsText = '';
+                if (r.symptoms && r.symptoms.trim()) {
+                  try {
+                    const parsed = JSON.parse(r.symptoms);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                      symptomsText = parsed.join(', ');
+                    }
+                  } catch {
+                    symptomsText = r.symptoms;
+                  }
+                }
+
+                const obsText = r.observations?.trim() ?? '';
+                const label = labels[r.readingType] ?? r.readingType;
+
+                return '<tr>'
+                  + '<td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">' + formatDateBR(dateStr) + '</td>'
+                  + '<td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">' + label + '</td>'
+                  + '<td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-size: 12px; ' + valueStyle + '">' + r.valueMgDl + ' mg/dL</td>'
+                  + '<td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">' + (symptomsText || '-') + '</td>'
+                  + '<td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">' + (obsText || '-') + '</td>'
+                  + '</tr>';
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
 
         <div class="footer">
           <p>Este relatório é apenas um apoio para acompanhamento glicêmico gestacional e não substitui avaliação médica.</p>
