@@ -55,6 +55,16 @@ export async function POST(request: Request) {
       try {
         const dateObj = new Date(readingDate + 'T12:00:00Z');
         
+        // Build update data — only overwrite symptoms/observations if explicitly provided
+        const updateData: any = {
+          valueMgDl: value,
+          readingTime: readingTime || null,
+          notes: notes || null,
+        };
+        // Only set symptoms/observations in update if they were explicitly sent in the request
+        if (symptoms !== undefined) updateData.symptoms = symptoms || null;
+        if (observations !== undefined) updateData.observations = observations || null;
+
         const saved = await prisma.gestationalGlucoseReading.upsert({
           where: {
             userId_readingDate_readingType: {
@@ -63,13 +73,7 @@ export async function POST(request: Request) {
               readingType: readingType,
             },
           },
-          update: {
-            valueMgDl: value,
-            readingTime: readingTime || null,
-            notes: notes || null,
-            symptoms: symptoms || null,
-            observations: observations || null,
-          },
+          update: updateData,
           create: {
             userId,
             readingDate: dateObj,

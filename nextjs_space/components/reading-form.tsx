@@ -30,12 +30,14 @@ interface AlertModalProps {
   onClose: () => void;
   onSaveExtra: () => void;
   savingExtra: boolean;
+  queuePosition?: number;
+  queueTotal?: number;
 }
 
 function AlertModal({
   alert, value, readingType, labels,
   symptoms, observations, onSymptomsChange, onObservationsChange,
-  onClose, onSaveExtra, savingExtra
+  onClose, onSaveExtra, savingExtra, queuePosition, queueTotal
 }: AlertModalProps) {
   const toggleSymptom = (symptom: string) => {
     if (symptoms.includes(symptom)) {
@@ -68,6 +70,9 @@ function AlertModal({
                 <h3 className={`text-lg font-bold ${alert.color}`}>{alert.title}</h3>
                 <p className="text-sm text-gray-600 mt-0.5">
                   {labels[readingType] ?? readingType}: <strong>{value} mg/dL</strong>
+                  {queueTotal && queueTotal > 1 && (
+                    <span className="ml-2 text-xs text-gray-400">({queuePosition} de {queueTotal})</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -136,7 +141,7 @@ function AlertModal({
             onClick={onClose}
             className="flex-1 px-4 py-2.5 border-2 border-gray-200 text-gray-600 font-medium rounded-xl hover:bg-gray-50 transition-all text-sm"
           >
-            Fechar
+            {queueTotal && queueTotal > 1 ? 'Pular' : 'Fechar'}
           </button>
           {(symptoms.length > 0 || observations.trim()) && (
             <button
@@ -176,6 +181,15 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
   const [modalSymptoms, setModalSymptoms] = useState<string[]>([]);
   const [modalObservations, setModalObservations] = useState('');
   const [savingExtra, setSavingExtra] = useState(false);
+  // Queue for sequential alert modals (batch save)
+  const [alertQueue, setAlertQueue] = useState<Array<{
+    alert: GlucoseAlert;
+    value: number;
+    readingType: string;
+    readingId?: string;
+  }>>([]);
+  const [alertQueueTotal, setAlertQueueTotal] = useState(0);
+  const [alertQueueCurrent, setAlertQueueCurrent] = useState(0);
 
   const protocol = patientSettings?.postMealProtocol ?? '2h';
   const fastingTarget = patientSettings?.fastingTarget ?? DEFAULT_FASTING_TARGET;
@@ -258,6 +272,24 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
     }
   };
 
+  const showNextAlert = () => {
+    setAlertQueue(prev => {
+      const remaining = prev.slice(1);
+      if (remaining.length > 0) {
+        const next = remaining[0];
+        setAlertModal(next);
+        setModalSymptoms([]);
+        setModalObservations('');
+        setAlertQueueCurrent(c => c + 1);
+      } else {
+        setAlertModal(null);
+        setAlertQueueTotal(0);
+        setAlertQueueCurrent(0);
+      }
+      return remaining;
+    });
+  };
+
   const handleSaveExtra = async () => {
     if (!alertModal?.readingId) return;
     setSavingExtra(true);
@@ -281,7 +313,7 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
       toast.error('Erro de conexão');
     } finally {
       setSavingExtra(false);
-      setAlertModal(null);
+      showNextAlert();
     }
   };
 
@@ -353,9 +385,14 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
         toast.success(`${data?.savedCount ?? 0} medida(s) salva(s) com sucesso!`);
         onSave?.();
         
-        // Show alert for the most critical reading
+        // Collect all readings with alerts that DON'T already have observations saved
         const savedReadings = data?.data ?? [];
-        let worstAlert: { alert: GlucoseAlert; value: number; type: string; id?: string } | null = null;
+        const alertsToShow: Array<{
+          alert: GlucoseAlert;
+          value: number;
+          readingType: string;
+          readingId?: string;
+        }> = [];
         
         for (const saved of savedReadings) {
           const val = saved?.valueMgDl ?? saved?.value_mg_dl;
@@ -363,21 +400,27 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
           if (val && rType) {
             const alert = classifyGlucoseAlert(val, rType, fastingTarget, postMealTarget);
             if (alert.level !== 'normal') {
-              if (!worstAlert || alert.isEmergency || 
-                  (alert.level.includes('emergency') && !worstAlert.alert.isEmergency)) {
-                worstAlert = { alert, value: val, type: rType, id: saved?.id };
+              // Only show modal if the reading doesn't already have symptoms/observations
+              const hasSavedSymptoms = saved?.symptoms && saved.symptoms.trim().length > 0;
+              const hasSavedObs = saved?.observations && saved.observations.trim().length > 0;
+              if (!hasSavedSymptoms && !hasSavedObs) {
+                alertsToShow.push({
+                  alert,
+                  value: val,
+                  readingType: rType,
+                  readingId: saved?.id,
+                });
               }
             }
           }
         }
         
-        if (worstAlert) {
-          setAlertModal({ 
-            alert: worstAlert.alert, 
-            value: worstAlert.value, 
-            readingType: worstAlert.type,
-            readingId: worstAlert.id
-          });
+        // Show sequential modals for all readings needing observations
+        if (alertsToShow.length > 0) {
+          setAlertQueue(alertsToShow);
+          setAlertQueueTotal(alertsToShow.length);
+          setAlertQueueCurrent(1);
+          setAlertModal(alertsToShow[0]);
           setModalSymptoms([]);
           setModalObservations('');
         }
@@ -513,9 +556,11 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
             observations={modalObservations}
             onSymptomsChange={setModalSymptoms}
             onObservationsChange={setModalObservations}
-            onClose={() => setAlertModal(null)}
+            onClose={() => { if (alertQueue.length > 0) { showNextAlert(); } else { setAlertModal(null); } }}
             onSaveExtra={handleSaveExtra}
             savingExtra={savingExtra}
+            queuePosition={alertQueueTotal > 1 ? alertQueueCurrent : undefined}
+            queueTotal={alertQueueTotal > 1 ? alertQueueTotal : undefined}
           />
         )}
       </AnimatePresence>
