@@ -70,11 +70,17 @@ export async function POST(request: Request) {
       byDate[dateStr][reading?.readingType ?? ''] = reading?.valueMgDl ?? 0;
     }
 
-    // Coletar leituras com observações ou sintomas para a seção de eventos
+    // Coletar leituras relevantes para a seção de eventos:
+    // - Medições com observações ou sintomas registrados
+    // - Medições fora do normal (hipoglicemia <70 ou acima da meta)
+    const HYPOGLYCEMIA_THRESHOLD = 70;
     const readingsWithNotes = readings.filter((r: any) => {
       const hasObs = r.observations && r.observations.trim().length > 0;
       const hasSym = r.symptoms && r.symptoms.trim().length > 0;
-      return hasObs || hasSym;
+      const target = getTargetForType(r.readingType, fastingTarget, postMealTarget);
+      const isAboveTarget = (r.valueMgDl ?? 0) > target;
+      const isHypoglycemia = (r.valueMgDl ?? 0) < HYPOGLYCEMIA_THRESHOLD;
+      return hasObs || hasSym || isAboveTarget || isHypoglycemia;
     });
 
     // Estatísticas com metas personalizadas
@@ -216,13 +222,14 @@ export async function POST(request: Request) {
         ${readingsWithNotes.length > 0 ? `
         <div style="margin-top: 30px; page-break-inside: avoid;">
           <h3 style="color: #db2777;">Eventos e Observações</h3>
-          <p style="font-size: 12px; color: #666; margin-bottom: 12px;">Registros com sintomas ou observações informados pela paciente para conhecimento do obstetra.</p>
+          <p style="font-size: 12px; color: #666; margin-bottom: 12px;">Medições fora do intervalo normal (hipoglicemia &lt;70 mg/dL ou acima da meta) e registros com sintomas ou observações informados pela paciente.</p>
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
               <tr>
-                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left; width: 80px;">Data</th>
-                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left; width: 100px;">Medição</th>
-                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: center; width: 60px;">Valor</th>
+                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left; width: 75px;">Data</th>
+                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left; width: 90px;">Medição</th>
+                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: center; width: 55px;">Valor</th>
+                <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left; width: 90px;">Situação</th>
                 <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left;">Sintomas</th>
                 <th style="background-color: #fce7f3; padding: 8px; border: 1px solid #ddd; text-align: left;">Observações</th>
               </tr>
@@ -251,10 +258,29 @@ export async function POST(request: Request) {
                 const obsText = r.observations?.trim() ?? '';
                 const label = labels[r.readingType] ?? r.readingType;
 
+                // Determine situation label
+                const val = r.valueMgDl ?? 0;
+                let situationText = '';
+                let situationStyle = '';
+                if (val < 54) {
+                  situationText = 'Hipoglicemia grave';
+                  situationStyle = 'color: #dc2626; font-weight: bold;';
+                } else if (val < 70) {
+                  situationText = 'Hipoglicemia';
+                  situationStyle = 'color: #ea580c; font-weight: bold;';
+                } else if (isHigh) {
+                  situationText = 'Acima da meta';
+                  situationStyle = 'color: #dc2626;';
+                } else {
+                  situationText = 'Com observação';
+                  situationStyle = 'color: #666;';
+                }
+
                 return '<tr>'
                   + '<td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">' + formatDateBR(dateStr) + '</td>'
                   + '<td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">' + label + '</td>'
                   + '<td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-size: 12px; ' + valueStyle + '">' + r.valueMgDl + ' mg/dL</td>'
+                  + '<td style="padding: 8px; border: 1px solid #ddd; font-size: 12px; ' + situationStyle + '">' + situationText + '</td>'
                   + '<td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">' + (symptomsText || '-') + '</td>'
                   + '<td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">' + (obsText || '-') + '</td>'
                   + '</tr>';
