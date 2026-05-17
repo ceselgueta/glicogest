@@ -321,8 +321,10 @@ export async function POST(request: Request) {
     }
 
     // Gerar PDF com @sparticuz/chromium (compatível com Vercel serverless)
-    const chromium = await import('@sparticuz/chromium');
-    const puppeteerCore = await import('puppeteer-core');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chromium = await import('@sparticuz/chromium') as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const puppeteerCore = await import('puppeteer-core') as any;
 
     const browser = await puppeteerCore.default.launch({
       args: chromium.default.args,
@@ -334,7 +336,7 @@ export async function POST(request: Request) {
     let pdfBuffer: Buffer;
     try {
       const page = await browser.newPage();
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      await page.setContent(htmlContent, { waitUntil: 'load' });
       const pdfUint8 = await page.pdf({
         format: 'A4',
         margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
