@@ -4225,6 +4225,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sparticuz/chromium@npm:^148.0.0":
+  version: 148.0.0
+  resolution: "@sparticuz/chromium@npm:148.0.0"
+  dependencies:
+    tar-fs: "npm:^3.1.2"
+  checksum: 10c0/4f2b420c995ab7d4e6271a29f115348f0a3ed8eea34b175316d3f8eb6e40bc72c6675135021fb9841e958edd2f8d29f00565e28eabb99bbab6ca602b38111ff6
+  languageName: node
+  linkType: hard
+
 "@swc/counter@npm:^0.1.3":
   version: 0.1.3
   resolution: "@swc/counter@npm:0.1.3"
@@ -5423,6 +5432,7 @@ __metadata:
     "@radix-ui/react-toggle": "npm:1.1.0"
     "@radix-ui/react-toggle-group": "npm:1.1.0"
     "@radix-ui/react-tooltip": "npm:1.1.2"
+    "@sparticuz/chromium": "npm:^148.0.0"
     "@tanstack/react-query": "npm:5.0.0"
     "@types/bcryptjs": "npm:2.4.6"
     "@types/jsonwebtoken": "npm:9.0.5"
@@ -5466,6 +5476,7 @@ __metadata:
     postcss: "npm:8.4.30"
     prisma: "npm:6.7.0"
     puppeteer: "npm:^25.0.2"
+    puppeteer-core: "npm:^25.0.2"
     react: "npm:18.2.0"
     react-chartjs-2: "npm:5.3.0"
     react-datepicker: "npm:6.1.0"
@@ -11079,7 +11090,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"puppeteer-core@npm:25.0.2":
+"puppeteer-core@npm:25.0.2, puppeteer-core@npm:^25.0.2":
   version: 25.0.2
   resolution: "puppeteer-core@npm:25.0.2"
   dependencies:
@@ -12603,7 +12614,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar-fs@npm:^3.1.1":
+"tar-fs@npm:^3.1.1, tar-fs@npm:^3.1.2":
   version: 3.1.2
   resolution: "tar-fs@npm:3.1.2"
   dependencies:
