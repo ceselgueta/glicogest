@@ -32,6 +32,7 @@ export default function PdfButton({
       router.push('/planos');
       return;
     }
+
     if (!startDate || !endDate) {
       toast.error('Selecione um período');
       return;
@@ -47,27 +48,22 @@ export default function PdfButton({
         body: JSON.stringify({ startDate, endDate }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data?.error ?? 'Erro ao gerar PDF');
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+        throw new Error(error?.error ?? 'Erro ao gerar PDF');
       }
 
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) {
-        throw new Error('Popup bloqueado. Por favor, permita popups para este site e tente novamente.');
-      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio_glicemia_${startDate}_${endDate}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
 
-      printWindow.document.write(data.html);
-      printWindow.document.close();
-
-      printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
-      };
-
-      toast.success('Relatório aberto! Escolha "Salvar como PDF" na impressão.', { id: 'pdf' });
+      toast.success('Relatório gerado com sucesso!', { id: 'pdf' });
     } catch (error: any) {
       toast.error(error?.message ?? 'Erro ao gerar relatório', { id: 'pdf' });
     } finally {

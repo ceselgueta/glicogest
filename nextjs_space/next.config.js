@@ -21,11 +21,16 @@ const nextConfig = {
       config.output.chunkFilename = 'static/chunks/[contenthash:16].js';
     }
     if (isServer) {
-      config.externals = [...(config.externals || []), 'puppeteer'];
+      config.externals = [
+        ...(config.externals || []),
+        'puppeteer',
+        '@sparticuz/chromium',
+        'puppeteer-core',
+      ];
     }
     return config;
   },
-  serverExternalPackages: ['puppeteer'],
+  serverExternalPackages: ['puppeteer', '@sparticuz/chromium', 'puppeteer-core'],
 };
 
 module.exports = nextConfig;

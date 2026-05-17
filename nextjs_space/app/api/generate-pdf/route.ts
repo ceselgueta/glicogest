@@ -320,8 +320,37 @@ export async function POST(request: Request) {
       console.error('Error incrementing PDF counter:', e);
     }
 
-    // Retornar HTML para o navegador converter em PDF via window.print()
-    return NextResponse.json({ success: true, html: htmlContent });
+    // Gerar PDF com @sparticuz/chromium (compatível com Vercel serverless)
+    const chromium = await import('@sparticuz/chromium');
+    const puppeteerCore = await import('puppeteer-core');
+
+    const browser = await puppeteerCore.default.launch({
+      args: chromium.default.args,
+      defaultViewport: chromium.default.defaultViewport,
+      executablePath: await chromium.default.executablePath(),
+      headless: chromium.default.headless,
+    });
+
+    let pdfBuffer: Buffer;
+    try {
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      const pdfUint8 = await page.pdf({
+        format: 'A4',
+        margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
+        printBackground: true,
+      });
+      pdfBuffer = Buffer.from(pdfUint8);
+    } finally {
+      await browser.close();
+    }
+
+    return new NextResponse(pdfBuffer, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="relatorio_glicemia_${startDate}_${endDate}.pdf"`,
+      },
+    });
   } catch (error) {
     console.error('Error generating PDF:', error);
     return NextResponse.json({ success: false, error: 'Erro ao gerar relatório' }, { status: 500 });
