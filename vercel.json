@@ -1,6 +1,6 @@
 {
-  "installCommand": "yarn install --frozen-lockfile",
-  "buildCommand": "yarn build",
-  "framework": "nextjs",
-  "rootDirectory": "nextjs_space"
+  "installCommand": "cd nextjs_space && yarn install",
+  "buildCommand": "cd nextjs_space && yarn build",
+  "outputDirectory": "nextjs_space/.next",
+  "framework": "nextjs"
 }
