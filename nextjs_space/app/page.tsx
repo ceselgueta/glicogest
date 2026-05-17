@@ -3,36 +3,67 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Heart, ClipboardList, BarChart3, FileText, Shield, Clock, ArrowRight, Check, Star } from "lucide-react";
+import { Heart, ClipboardList, BarChart3, FileText, Shield, Clock, ArrowRight, Check, Star, AlertCircle, Smartphone, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { PLANS, formatPrice } from "@/lib/plans";
 
+const dores = [
+  "Anota no papel e perde as folhas antes da consulta",
+  "Manda foto pelo WhatsApp e o médico não consegue ler",
+  "Usa uma planilha confusa que não dá para mostrar no celular",
+  "Fica com medo de esquecer de registrar uma medição importante",
+  "Chega na consulta sem conseguir apresentar os dados de forma clara",
+];
+
 const features = [
   {
     icon: ClipboardList,
-    title: "Registre suas medições diárias",
-    description: "Anote glicemia em jejum e após as refeições de forma simples, pelo celular ou computador.",
+    title: "Registre em 5 segundos",
+    description: "Jejum, pós-café, pós-almoço e pós-janta. Tudo pelo celular, sem complicação.",
   },
   {
     icon: BarChart3,
-    title: "Acompanhe seus resultados com clareza",
-    description: "Veja rapidamente quais valores estão dentro da meta e quais precisam de atenção.",
+    title: "Veja o que está fora da meta",
+    description: "Valores acima da meta ficam destacados automaticamente para facilitar o acompanhamento.",
   },
   {
     icon: FileText,
-    title: "Gere relatórios para o obstetra",
-    description: "Baixe um PDF organizado com resumo, estatísticas e tabela completa das medições.",
-  },
-  {
-    icon: Shield,
-    title: "Tenha seu histórico sempre salvo",
-    description: "Não dependa de papel, bloco de notas ou mensagens perdidas no WhatsApp.",
+    title: "PDF para o obstetra em 1 clique",
+    description: "Relatório completo com período, estatísticas e tabela diária — pronto para levar na consulta.",
   },
   {
     icon: Clock,
-    title: "Adapte ao seu protocolo médico",
-    description: "Escolha se as medições após as refeições são feitas em 1 hora ou 2 horas, conforme orientação do obstetra.",
+    title: "Protocolo 1h ou 2h",
+    description: "Configure o protocolo indicado pela sua obstetra e o sistema adapta as metas automaticamente.",
+  },
+  {
+    icon: Shield,
+    title: "Histórico sempre salvo",
+    description: "Seus dados ficam seguros na nuvem. Acesse de qualquer celular, a qualquer hora.",
+  },
+  {
+    icon: Smartphone,
+    title: "Funciona no celular",
+    description: "Não precisa instalar nada. Acesse direto pelo navegador do seu smartphone.",
+  },
+];
+
+const depoimentos = [
+  {
+    texto: "Chegava sempre na consulta com papéis bagunçados. Com o GlicoGest, chego com o relatório PDF na mão. A médica adorou!",
+    nome: "Gestante com DG",
+    semana: "32ª semana",
+  },
+  {
+    texto: "Finalmente organizei todas as medições em um lugar só. Consigo ver rapidamente quando estou acima da meta.",
+    nome: "Usuária GlicoGest",
+    semana: "28ª semana",
+  },
+  {
+    texto: "Simples de usar e o relatório é muito profissional. Vale muito o investimento para facilitar o acompanhamento.",
+    nome: "Gestante com DG",
+    semana: "36ª semana",
   },
 ];
 
@@ -67,47 +98,42 @@ export default function HomePage() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-800">GlicoGest</h1>
-              <p className="text-xs text-gray-500">Controle Glicêmico Gestacional</p>
+              <p className="text-xs text-gray-500">Glicemia gestacional organizada</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="px-4 py-2 text-sm font-medium text-pink-600 hover:text-pink-700 transition-colors"
-            >
+            <Link href="/login" className="px-4 py-2 text-sm font-medium text-pink-600 hover:text-pink-700 transition-colors">
               Entrar
             </Link>
             <Link
               href="/signup"
               className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all shadow-md"
             >
-              Criar conta
+              Testar grátis
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 pt-16 pb-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
+      <section className="max-w-6xl mx-auto px-4 pt-16 pb-16 text-center">
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-pink-100 text-pink-700 rounded-full text-sm font-medium mb-6">
             <Heart className="w-4 h-4" fill="currentColor" />
-            Cuidado e acompanhamento para você e seu bebê
+            Feito para gestantes com diabetes gestacional
           </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-800 mb-6 leading-tight">
-            Controle sua{" "}
+            Suas medições de glicemia{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">
-              glicemia gestacional
+              organizadas
             </span>{" "}
-            com simplicidade
+            e prontas para o obstetra
           </h2>
-          <p className="text-lg sm:text-xl text-gray-500 max-w-3xl mx-auto mb-10">
-            Registre, acompanhe e compartilhe suas medições com o obstetra. Tudo organizado, salvo e acessível de
-            qualquer lugar.
+          <p className="text-lg sm:text-xl text-gray-500 max-w-3xl mx-auto mb-4">
+            Registre no celular em segundos, acompanhe os valores e gere um relatório PDF completo para levar na consulta. Sem papel, sem planilha, sem confusão.
+          </p>
+          <p className="text-sm text-pink-600 font-medium mb-10">
+            ✓ 4 dias grátis · ✓ Sem cartão de crédito · ✓ Cancele quando quiser
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -117,18 +143,57 @@ export default function HomePage() {
               Começar teste grátis
               <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link
-              href="#planos"
-              className="px-8 py-4 border-2 border-pink-200 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 transition-all text-lg"
-            >
+            <Link href="#planos" className="px-8 py-4 border-2 border-pink-200 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 transition-all text-lg">
               Ver planos
             </Link>
           </div>
         </motion.div>
       </section>
 
+      {/* Seção de Dor */}
+      <section className="bg-gradient-to-r from-pink-50 to-rose-50 border-y border-pink-100 py-16">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-pink-200 text-pink-700 rounded-full text-sm font-medium mb-4">
+              <AlertCircle className="w-4 h-4" />
+              Você também faz isso?
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800">
+              A maioria das gestantes com DG anota as medições assim:
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
+            {dores.map((dor, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-start gap-3 bg-white border border-pink-100 rounded-xl p-4"
+              >
+                <span className="text-rose-400 text-lg flex-shrink-0">✗</span>
+                <span className="text-gray-600 text-sm">{dor}</span>
+              </motion.div>
+            ))}
+          </div>
+          <div className="text-center">
+            <p className="text-gray-700 font-semibold text-lg mb-4">
+              Existe uma forma muito melhor de fazer isso. 👇
+            </p>
+            <Link
+              href="/signup"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all shadow-lg text-base"
+            >
+              Testar grátis por 4 dias
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
-      <section className="max-w-6xl mx-auto px-4 pb-20">
+      <section className="max-w-6xl mx-auto px-4 py-20">
         <div className="text-center mb-12">
           <h3 className="text-3xl font-bold text-gray-800 mb-3">Tudo o que você precisa</h3>
           <p className="text-gray-500">Simples, seguro e feito para a rotina da gestante</p>
@@ -153,8 +218,42 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Depoimentos */}
+      <section className="bg-pink-50 border-y border-pink-100 py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold text-gray-800 mb-3">O que dizem as gestantes</h3>
+            <p className="text-gray-500">Quem já usa o GlicoGest para organizar a gestação</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {depoimentos.map((dep, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white rounded-2xl p-6 card-shadow"
+              >
+                <Quote className="w-8 h-8 text-pink-200 mb-3" fill="currentColor" />
+                <p className="text-gray-600 text-sm leading-relaxed mb-4">{dep.texto}</p>
+                <div className="flex items-center gap-2">
+                  <div className="bg-pink-100 rounded-full w-8 h-8 flex items-center justify-center">
+                    <Heart className="w-4 h-4 text-pink-500" fill="currentColor" />
+                  </div>
+                  <div>
+                    <p className="text-gray-800 font-medium text-sm">{dep.nome}</p>
+                    <p className="text-gray-400 text-xs">{dep.semana}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
-      <section id="planos" className="max-w-6xl mx-auto px-4 pb-20">
+      <section id="planos" className="max-w-6xl mx-auto px-4 py-20">
         <div className="text-center mb-4">
           <h3 className="text-3xl font-bold text-gray-800 mb-3">Escolha seu plano</h3>
           <p className="text-gray-500">Registre suas medições, acompanhe seus resultados e gere relatórios para o obstetra.</p>
@@ -198,8 +297,15 @@ export default function HomePage() {
                     </span>
                   )}
                 </div>
-                {plan.price > 0 && <p className="text-xs text-gray-400 mt-1">{plan.durationDays} dias de acesso</p>}
+                {plan.price > 0 && (
+                  <p className="text-xs text-gray-400 mt-1">{plan.durationDays} dias de acesso</p>
+                )}
                 {plan.id === "free_trial" && <p className="text-xs text-gray-400 mt-1">4 dias · 1 PDF</p>}
+                {plan.price > 0 && (
+                  <p className="text-xs text-pink-500 font-medium mt-1">
+                    R${(plan.price / plan.durationDays).toFixed(2).replace('.', ',')} por dia
+                  </p>
+                )}
               </div>
 
               <ul className="space-y-2 mb-6 flex-1">
@@ -232,14 +338,45 @@ export default function HomePage() {
         </p>
       </section>
 
+      {/* CTA Final */}
+      <section className="bg-gradient-to-r from-pink-500 to-rose-500 py-16">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <h3 className="text-3xl font-bold text-white mb-4">
+            Comece grátis hoje mesmo
+          </h3>
+          <p className="text-pink-100 mb-8 text-lg">
+            4 dias de acesso completo. Sem cartão de crédito. Cancele quando quiser.
+          </p>
+          <Link
+            href="/signup"
+            className="inline-flex items-center gap-2 px-10 py-4 bg-white text-pink-600 font-bold rounded-xl hover:bg-pink-50 transition-all shadow-lg text-lg"
+          >
+            Testar grátis por 4 dias
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+          <p className="text-pink-200 text-xs mt-4">
+            ⚕️ O GlicoGest não substitui orientação médica. Consulte sempre seu obstetra.
+          </p>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="border-t border-pink-100 bg-white/50">
-        <div className="max-w-6xl mx-auto px-4 py-8 text-center text-gray-400 text-sm">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Heart className="w-4 h-4 text-pink-400" fill="currentColor" />
-            <span className="font-medium text-gray-500">GlicoGest</span>
+      <footer className="border-t border-pink-100 bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Heart className="w-4 h-4 text-pink-400" fill="currentColor" />
+              <span className="font-medium text-gray-500 text-sm">GlicoGest · GlicoGest Inc.</span>
+            </div>
+            <div className="flex items-center gap-6 text-xs text-gray-400">
+              <Link href="/privacidade" className="hover:text-pink-500 transition-colors">Política de Privacidade</Link>
+              <Link href="/termos" className="hover:text-pink-500 transition-colors">Termos de Uso</Link>
+              <a href="mailto:glicogestcontrole@gmail.com" className="hover:text-pink-500 transition-colors">Suporte</a>
+            </div>
           </div>
-          <p>Controle Glicêmico Gestacional · Cuidando de você e do seu bebê</p>
+          <p className="text-center text-gray-400 text-xs mt-4">
+            © 2026 GlicoGest Inc. · Controle Glicêmico Gestacional · Cuidando de você e do seu bebê
+          </p>
         </div>
       </footer>
     </div>
