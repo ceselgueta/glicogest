@@ -25,7 +25,7 @@ export const PLANS: PlanDefinition[] = [
       'Dashboard com estatísticas',
       'Metas personalizadas',
       'Protocolo 1h ou 2h após refeições',
-      '1 relatório PDF de teste',
+      '3 relatórios PDF de teste',
     ],
     buttonText: 'Começar teste grátis',
     highlight: false,
@@ -179,8 +179,8 @@ export function computePlanStatus(user: {
       isActive,
       daysRemaining,
       canRegisterReadings: isActive,
-      canGeneratePdf: isActive && pdfReportsGenerated < 1,
-      pdfLimit: 1,
+      canGeneratePdf: isActive && pdfReportsGenerated < 3,
+      pdfLimit: 3,
       statusLabel: isActive
         ? `Teste grátis: ${daysRemaining} dia${daysRemaining !== 1 ? 's' : ''} restante${daysRemaining !== 1 ? 's' : ''}`
         : 'Teste grátis expirado',
