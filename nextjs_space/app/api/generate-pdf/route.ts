@@ -310,32 +310,6 @@ export async function POST(request: Request) {
       </html>
     `;
 
-    // Gerar PDF com Puppeteer (sem dependência da Abacus)
-    const puppeteer = await import('puppeteer');
-    const browser = await puppeteer.default.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-      ],
-    });
-
-    let pdfBuffer: Buffer;
-    try {
-      const page = await browser.newPage();
-      await page.setContent(htmlContent, { waitUntil: 'load' as any });
-      const pdfUint8 = await page.pdf({
-        format: 'A4',
-        margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
-        printBackground: true,
-      });
-      pdfBuffer = Buffer.from(pdfUint8);
-    } finally {
-      await browser.close();
-    }
-
     // Incrementar contador de PDFs para usuários do trial
     try {
       await prisma.user.update({
@@ -346,12 +320,8 @@ export async function POST(request: Request) {
       console.error('Error incrementing PDF counter:', e);
     }
 
-    return new NextResponse(pdfBuffer, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="relatorio_glicemia_${startDate}_${endDate}.pdf"`,
-      },
-    });
+    // Retornar HTML para o navegador converter em PDF via window.print()
+    return NextResponse.json({ success: true, html: htmlContent });
   } catch (error) {
     console.error('Error generating PDF:', error);
     return NextResponse.json({ success: false, error: 'Erro ao gerar relatório' }, { status: 500 });
