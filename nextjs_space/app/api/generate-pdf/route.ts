@@ -310,68 +310,48 @@ export async function POST(request: Request) {
       </html>
     `;
 
-    // Chamar API de geração de PDF
-    const createResponse = await fetch('https://apps.abacus.ai/api/createConvertHtmlToPdfRequest', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        deployment_token: process.env.ABACUSAI_API_KEY,
-        html_content: htmlContent,
-        pdf_options: { format: 'A4', margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' } },
-        base_url: process.env.NEXTAUTH_URL || '',
-      }),
+    // Gerar PDF com Puppeteer (sem dependência da Abacus)
+    const puppeteer = await import('puppeteer');
+    const browser = await puppeteer.default.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+      ],
     });
 
-    if (!createResponse.ok) {
-      return NextResponse.json({ success: false, error: 'Erro ao criar requisição de PDF' }, { status: 500 });
-    }
-
-    const { request_id } = await createResponse.json();
-    if (!request_id) {
-      return NextResponse.json({ success: false, error: 'ID de requisição não retornado' }, { status: 500 });
-    }
-
-    // Polling
-    const maxAttempts = 120;
-    let attempts = 0;
-
-    while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const statusResponse = await fetch('https://apps.abacus.ai/api/getConvertHtmlToPdfStatus', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request_id, deployment_token: process.env.ABACUSAI_API_KEY }),
+    let pdfBuffer: Buffer;
+    try {
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'load' as any });
+      const pdfUint8 = await page.pdf({
+        format: 'A4',
+        margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
+        printBackground: true,
       });
-
-      const statusResult = await statusResponse.json();
-      const status = statusResult?.status ?? 'FAILED';
-      const result = statusResult?.result ?? null;
-
-      if (status === 'SUCCESS' && result?.result) {
-        // Increment PDF counter for trial users
-        try {
-          await prisma.user.update({
-            where: { id: userId },
-            data: { pdfReportsGenerated: { increment: 1 } },
-          });
-        } catch (e) {
-          console.error('Error incrementing PDF counter:', e);
-        }
-        const pdfBuffer = Buffer.from(result.result, 'base64');
-        return new NextResponse(pdfBuffer, {
-          headers: {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="relatorio_glicemia_${startDate}_${endDate}.pdf"`,
-          },
-        });
-      } else if (status === 'FAILED') {
-        return NextResponse.json({ success: false, error: 'Falha na geração do PDF' }, { status: 500 });
-      }
-      attempts++;
+      pdfBuffer = Buffer.from(pdfUint8);
+    } finally {
+      await browser.close();
     }
 
-    return NextResponse.json({ success: false, error: 'Timeout na geração do PDF' }, { status: 500 });
+    // Incrementar contador de PDFs para usuários do trial
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { pdfReportsGenerated: { increment: 1 } },
+      });
+    } catch (e) {
+      console.error('Error incrementing PDF counter:', e);
+    }
+
+    return new NextResponse(pdfBuffer, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="relatorio_glicemia_${startDate}_${endDate}.pdf"`,
+      },
+    });
   } catch (error) {
     console.error('Error generating PDF:', error);
     return NextResponse.json({ success: false, error: 'Erro ao gerar relatório' }, { status: 500 });

@@ -20,8 +20,12 @@ const nextConfig = {
       config.output.filename = 'static/chunks/[name]-[contenthash:8].js';
       config.output.chunkFilename = 'static/chunks/[contenthash:16].js';
     }
+    if (isServer) {
+      config.externals = [...(config.externals || []), 'puppeteer'];
+    }
     return config;
   },
+  serverExternalPackages: ['puppeteer'],
 };
 
 module.exports = nextConfig;
