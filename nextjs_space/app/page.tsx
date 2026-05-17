@@ -334,7 +334,7 @@ export default function HomePage() {
         </div>
 
         <p className="text-center text-gray-400 text-xs mt-8">
-          Teste grátis por 4 dias com acesso ao sistema e 1 relatório PDF. Após expirar, seus dados permanecem salvos.
+          Teste grátis por 4 dias com acesso ao sistema e até 3 relatórios PDF. Após expirar, seus dados permanecem salvos.
         </p>
       </section>
 
