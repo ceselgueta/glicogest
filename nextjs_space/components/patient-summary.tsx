@@ -22,10 +22,10 @@ export default function PatientSummary({ settings, onEdit }: PatientSummaryProps
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl p-6 card-shadow"
+      className="bg-white rounded-2xl p-4 sm:p-6 card-shadow"
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center gap-2">
           <User className="w-5 h-5 text-pink-500" />
           Dados da Paciente
         </h3>
@@ -34,11 +34,13 @@ export default function PatientSummary({ settings, onEdit }: PatientSummaryProps
           className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
         >
           <Settings className="w-4 h-4" />
-          Editar cadastro
+          <span className="hidden sm:inline">Editar cadastro</span>
+          <span className="sm:hidden">Editar</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Mobile: 2 colunas / Desktop: até 6 colunas */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="bg-pink-50 rounded-xl p-3">
           <p className="text-xs text-gray-500 mb-1">Paciente</p>
           <p className="text-sm font-semibold text-gray-800 truncate">{settings.patientName}</p>
