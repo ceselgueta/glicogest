@@ -108,22 +108,16 @@ export async function POST(request: Request) {
 
     // Patient info HTML
     const patientInfoHtml = patientSettings ? `
-      <div style="background: #fdf2f8; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
-        <h3 style="margin: 0 0 10px 0; color: #db2777; font-size: 14px;">Dados da Paciente</h3>
-        <table style="width: 100%; font-size: 13px;">
-          <tr>
-            <td style="padding: 3px 10px 3px 0;"><strong>Nome:</strong> ${patientSettings.patientName}</td>
-            ${patientSettings.pregnancyWeeks ? `<td style="padding: 3px 10px 3px 0;"><strong>Semana gestacional:</strong> ${patientSettings.pregnancyWeeks}ª</td>` : ''}
-          </tr>
-          <tr>
-            ${patientSettings.estimatedDueDate ? `<td style="padding: 3px 10px 3px 0;"><strong>Data provável do parto:</strong> ${formatDateBR(patientSettings.estimatedDueDate.toISOString().split('T')[0])}</td>` : '<td></td>'}
-            ${patientSettings.doctorName ? `<td style="padding: 3px 10px 3px 0;"><strong>Obstetra:</strong> ${patientSettings.doctorName}</td>` : ''}
-          </tr>
-          <tr>
-            <td style="padding: 3px 10px 3px 0;"><strong>Protocolo:</strong> ${protocol === '1h' ? '1 hora' : '2 horas'} após refeições</td>
-            <td style="padding: 3px 10px 3px 0;"><strong>Metas:</strong> Jejum ≤${fastingTarget} | Pós-ref. ≤${postMealTarget} mg/dL</td>
-          </tr>
-        </table>
+      <div style="background: #fdf2f8; border: 1px solid #fce7f3; border-radius: 10px; padding: 18px 20px; margin-bottom: 28px;">
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #db2777; margin-bottom: 12px;">Dados da Paciente</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #374151;">
+          <div><span style="color: #9ca3af; font-size: 11px; display: block; margin-bottom: 2px;">Nome</span><strong style="color: #111827;">${patientSettings.patientName}</strong></div>
+          ${patientSettings.pregnancyWeeks ? `<div><span style="color: #9ca3af; font-size: 11px; display: block; margin-bottom: 2px;">Semana gestacional</span><strong style="color: #111827;">${patientSettings.pregnancyWeeks}ª semana</strong></div>` : '<div></div>'}
+          ${patientSettings.estimatedDueDate ? `<div><span style="color: #9ca3af; font-size: 11px; display: block; margin-bottom: 2px;">Data provável do parto</span><strong style="color: #111827;">${formatDateBR(patientSettings.estimatedDueDate.toISOString().split('T')[0])}</strong></div>` : '<div></div>'}
+          ${patientSettings.doctorName ? `<div><span style="color: #9ca3af; font-size: 11px; display: block; margin-bottom: 2px;">Obstetra</span><strong style="color: #111827;">Dr(a). ${patientSettings.doctorName}</strong></div>` : '<div></div>'}
+          <div><span style="color: #9ca3af; font-size: 11px; display: block; margin-bottom: 2px;">Protocolo</span><strong style="color: #111827;">${protocol === '1h' ? '1 hora' : '2 horas'} após refeições</strong></div>
+          <div><span style="color: #9ca3af; font-size: 11px; display: block; margin-bottom: 2px;">Metas glicêmicas</span><strong style="color: #111827;">Jejum ≤${fastingTarget} · Pós-ref. ≤${postMealTarget} mg/dL</strong></div>
+        </div>
       </div>
     ` : '';
 
@@ -135,18 +129,16 @@ export async function POST(request: Request) {
       const cells = READING_TYPES.map(type => {
         const value = dayData[type];
         const target = getTargetForType(type, fastingTarget, postMealTarget);
-        if (value === undefined || value === null) return '<td style="text-align: center; padding: 8px; border: 1px solid #ddd;">-</td>';
+        if (value === undefined || value === null) return '<td class="empty">—</td>';
         const isHigh = value > target;
         const isHypo = value < 70;
-        let style = 'background-color: #dcfce7; color: #16a34a;'; // normal/dentro da meta
+        let cls = 'normal';
         if (isHypo) {
-          style = value < 54
-            ? 'background-color: #fecaca; color: #dc2626; font-weight: bold;' // hipoglicemia grave
-            : 'background-color: #fed7aa; color: #ea580c; font-weight: bold;'; // hipoglicemia
+          cls = value < 54 ? 'hypo-severe' : 'hypo';
         } else if (isHigh) {
-          style = 'background-color: #fecaca; color: #dc2626; font-weight: bold;'; // acima da meta
+          cls = 'high';
         }
-        return `<td style="text-align: center; padding: 8px; border: 1px solid #ddd; ${style}">${value}</td>`;
+        return `<td class="${cls}">${value}</td>`;
       }).join('');
       return `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: 500;">${formatDateBR(date)}</td>${cells}</tr>`;
     }).join('');
@@ -157,69 +149,142 @@ export async function POST(request: Request) {
       <head>
         <meta charset="UTF-8">
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-          h1 { color: #db2777; text-align: center; margin-bottom: 5px; }
-          .subtitle { text-align: center; color: #666; margin-bottom: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-          th { background-color: #fce7f3; padding: 10px; border: 1px solid #ddd; font-weight: bold; }
-          .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
-          .stat-card { background: #f9fafb; padding: 15px; border-radius: 8px; }
-          .stat-label { font-size: 12px; color: #666; margin-bottom: 5px; }
-          .stat-value { font-size: 24px; font-weight: bold; color: #db2777; }
-          .type-stats { margin-top: 30px; }
-          .type-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
-          .footer { text-align: center; margin-top: 40px; font-size: 11px; color: #999; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 32px 36px; color: #111827; background: white; font-size: 13px; line-height: 1.5; }
+          
+          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #fce7f3; }
+          .header-left h1 { font-size: 22px; font-weight: 700; color: #be185d; margin-bottom: 4px; }
+          .header-left .periodo { font-size: 13px; color: #6b7280; }
+          .header-right { text-align: right; }
+          .header-right .logo { font-size: 18px; font-weight: 800; color: #db2777; letter-spacing: -0.5px; }
+          .header-right .gerado { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+
+          .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+          .stat-card { background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 10px; padding: 14px 16px; }
+          .stat-label { font-size: 11px; color: #6b7280; font-weight: 500; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+          .stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+
+          .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #374151; margin-bottom: 12px; margin-top: 24px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; }
+
+          table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+          th { background: #fdf2f8; color: #be185d; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 12px; text-align: center; border: 1px solid #fce7f3; }
+          th.date-col { text-align: left; }
+          td { padding: 9px 12px; border: 1px solid #f3f4f6; text-align: center; font-size: 13px; font-weight: 600; }
+          td.date-cell { text-align: left; font-weight: 500; color: #374151; font-size: 12px; }
+          tr:nth-child(even) td { background: #fafafa; }
+          tr:nth-child(even) td.normal { background: #f0fdf4; }
+          tr:nth-child(even) td.high { background: #fef2f2; }
+          tr:nth-child(even) td.hypo { background: #fff7ed; }
+
+          td.normal { background: #f0fdf4; color: #15803d; }
+          td.high { background: #fef2f2; color: #dc2626; }
+          td.hypo-severe { background: #fef2f2; color: #dc2626; }
+          td.hypo { background: #fff7ed; color: #ea580c; }
+          td.empty { color: #d1d5db; background: white; font-weight: 400; }
+
+          .type-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+          .type-stat-card { background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+          .type-stat-name { font-size: 12px; color: #374151; font-weight: 600; }
+          .type-stat-meta { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+          .type-stat-right { text-align: right; }
+          .type-stat-pct { font-size: 18px; font-weight: 700; line-height: 1; }
+          .type-stat-detail { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+          .events-table th { font-size: 11px; }
+          .events-table td { font-size: 12px; font-weight: 400; text-align: left; }
+          .events-table td.val-cell { text-align: center; font-weight: 700; }
+
+          .legend { display: flex; gap: 16px; margin-top: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+          .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #6b7280; }
+          .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+          .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+          .footer-disclaimer { font-size: 11px; color: #9ca3af; max-width: 70%; line-height: 1.4; }
+          .footer-brand { font-size: 13px; font-weight: 700; color: #db2777; }
+
+          @media print {
+            body { padding: 20px 24px; }
+            .stats-grid { grid-template-columns: repeat(4, 1fr); }
+          }
         </style>
       </head>
       <body>
-        <h1>Relatório de Glicemia Gestacional</h1>
-        <p class="subtitle">Período: ${formatDateBR(startDate)} a ${formatDateBR(endDate)}</p>
-        
-        ${patientInfoHtml}
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Total de Leituras</div>
-            <div class="stat-value">${totalReadings}</div>
+        <!-- HEADER -->
+        <div class="header">
+          <div class="header-left">
+            <h1>Relatório de Glicemia Gestacional</h1>
+            <div class="periodo">Período de análise: ${formatDateBR(startDate)} a ${formatDateBR(endDate)}</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Acima da meta</div>
-            <div class="stat-value" style="color: ${aboveThreshold > 0 ? '#dc2626' : '#16a34a'}">${aboveThreshold}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Percentual Elevado</div>
-            <div class="stat-value" style="color: ${percentAbove > 30 ? '#dc2626' : percentAbove > 15 ? '#f59e0b' : '#16a34a'}">${percentAbove}%</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Dias Registrados</div>
-            <div class="stat-value">${sortedDates.length}</div>
+          <div class="header-right">
+            <div class="logo">GlicoGest</div>
+            <div class="gerado">Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
           </div>
         </div>
 
-        <h3>Medidas Diárias</h3>
+        ${patientInfoHtml}
+
+        <!-- STATS -->
+        <div class="section-title">Resumo do Período</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total de Leituras</div>
+            <div class="stat-value" style="color: #2563eb;">${totalReadings}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Dias Registrados</div>
+            <div class="stat-value" style="color: #7c3aed;">${sortedDates.length}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Acima da Meta</div>
+            <div class="stat-value" style="color: ${aboveThreshold > 0 ? '#dc2626' : '#16a34a'};">${aboveThreshold}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">% Elevado</div>
+            <div class="stat-value" style="color: ${percentAbove > 30 ? '#dc2626' : percentAbove > 15 ? '#d97706' : '#16a34a'};">${percentAbove}%</div>
+          </div>
+        </div>
+
+        <!-- LEGENDA -->
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#16a34a;"></div> Dentro da meta</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#dc2626;"></div> Acima da meta</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ea580c;"></div> Hipoglicemia (&lt;70)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#d1d5db;"></div> Não registrado</div>
+        </div>
+
+        <!-- TABELA DIÁRIA -->
+        <div class="section-title">Medidas Diárias</div>
         <table>
           <thead>
             <tr>
-              <th>Data</th>
-              <th>${labels['JEJUM']}<br><small style="font-weight:normal;color:#888;">meta ≤${fastingTarget}</small></th>
-              <th>${labels['POS_CAFE_2H']}<br><small style="font-weight:normal;color:#888;">meta ≤${postMealTarget}</small></th>
-              <th>${labels['POS_ALMOCO_2H']}<br><small style="font-weight:normal;color:#888;">meta ≤${postMealTarget}</small></th>
-              <th>${labels['POS_JANTA_2H']}<br><small style="font-weight:normal;color:#888;">meta ≤${postMealTarget}</small></th>
+              <th class="date-col" style="text-align:left; width:90px;">Data</th>
+              <th>${labels['JEJUM']}<div style="font-weight:400;font-size:10px;color:#db2777;margin-top:2px;">meta ≤${fastingTarget} mg/dL</div></th>
+              <th>${labels['POS_CAFE_2H']}<div style="font-weight:400;font-size:10px;color:#db2777;margin-top:2px;">meta ≤${postMealTarget} mg/dL</div></th>
+              <th>${labels['POS_ALMOCO_2H']}<div style="font-weight:400;font-size:10px;color:#db2777;margin-top:2px;">meta ≤${postMealTarget} mg/dL</div></th>
+              <th>${labels['POS_JANTA_2H']}<div style="font-weight:400;font-size:10px;color:#db2777;margin-top:2px;">meta ≤${postMealTarget} mg/dL</div></th>
             </tr>
           </thead>
           <tbody>
-            ${tableRows || '<tr><td colspan="5" style="text-align: center; padding: 20px;">Nenhuma medida registrada</td></tr>'}
+            ${tableRows || '<tr><td colspan="5" style="text-align: center; padding: 20px; color:#9ca3af;">Nenhuma medida registrada neste período</td></tr>'}
           </tbody>
         </table>
 
-        <div class="type-stats">
-          <h3>Estatísticas por Tipo de Medida</h3>
+        <!-- STATS POR TIPO -->
+        <div class="section-title" style="margin-top:28px;">Estatísticas por Tipo de Medição</div>
+        <div class="type-stats-grid">
           ${READING_TYPES.map(type => {
             const stats = byType[type] ?? { total: 0, above: 0, percent: 0, target: 120 };
+            const pctColor = stats.percent > 30 ? '#dc2626' : stats.percent > 15 ? '#d97706' : '#16a34a';
             return `
-              <div class="type-row">
-                <span>${labels[type] ?? type} (meta ≤${stats.target})</span>
-                <span>${stats.total} medidas | ${stats.above} elevadas | <strong style="color: ${stats.percent > 30 ? '#dc2626' : stats.percent > 15 ? '#f59e0b' : '#16a34a'}">${stats.percent}%</strong> acima da meta</span>
+              <div class="type-stat-card">
+                <div>
+                  <div class="type-stat-name">${labels[type] ?? type}</div>
+                  <div class="type-stat-meta">meta ≤${stats.target} mg/dL · ${stats.total} leituras</div>
+                </div>
+                <div class="type-stat-right">
+                  <div class="type-stat-pct" style="color:${pctColor};">${stats.percent}%</div>
+                  <div class="type-stat-detail">${stats.above} elevada${stats.above !== 1 ? 's' : ''}</div>
+                </div>
               </div>
             `;
           }).join('')}
@@ -302,9 +367,12 @@ export async function POST(request: Request) {
         </div>
         ` : ''}
 
+        <!-- FOOTER -->
         <div class="footer">
-          <p>Este relatório é apenas um apoio para acompanhamento glicêmico gestacional e não substitui avaliação médica.</p>
-          <p>Relatório gerado em ${new Date().toLocaleString('pt-BR')}</p>
+          <div class="footer-disclaimer">
+            ⚕️ Este relatório é um apoio ao acompanhamento glicêmico e não substitui avaliação ou orientação médica. Consulte sempre seu obstetra.
+          </div>
+          <div class="footer-brand">GlicoGest</div>
         </div>
       </body>
       </html>
