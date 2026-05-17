@@ -326,9 +326,9 @@ export async function POST(request: Request) {
 
     const browser = await puppeteerCore.default.launch({
       args: chromium.default.args,
-      defaultViewport: chromium.default.defaultViewport,
+      defaultViewport: { width: 1280, height: 800 },
       executablePath: await chromium.default.executablePath(),
-      headless: chromium.default.headless,
+      headless: true,
     });
 
     let pdfBuffer: Buffer;
