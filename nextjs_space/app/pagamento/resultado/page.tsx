@@ -30,6 +30,13 @@ function ResultadoContent() {
         setFinalStatus(data.status || status || 'unknown');
         if (data.status === 'approved') {
           await update();
+          // Meta Pixel - evento de compra
+          if (typeof window !== 'undefined' && (window as any).fbq) {
+            (window as any).fbq('track', 'Purchase', {
+              currency: 'BRL',
+              value: 0,
+            });
+          }
         }
       } catch {
         setFinalStatus(status || 'unknown');
