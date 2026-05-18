@@ -193,7 +193,8 @@ export default function ReadingForm({ existingReadings, onSave, patientSettings 
 
   const protocol = patientSettings?.postMealProtocol ?? '2h';
   const fastingTarget = patientSettings?.fastingTarget ?? DEFAULT_FASTING_TARGET;
-  const postMealTarget = patientSettings?.postMealTarget ?? DEFAULT_POST_MEAL_TARGET;
+  // Meta sempre baseada no protocolo: 1h = 140, 2h = 120 (SBD/FEBRASGO 2025)
+  const postMealTarget = protocol === '1h' ? 140 : 120;
   const labels = getReadingTypeLabels(protocol);
 
   useEffect(() => {
