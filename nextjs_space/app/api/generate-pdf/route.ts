@@ -47,7 +47,9 @@ export async function POST(request: Request) {
     });
 
     const fastingTarget = patientSettings?.fastingTarget ?? DEFAULT_FASTING_TARGET;
-    const postMealTarget = patientSettings?.postMealTarget ?? DEFAULT_POST_MEAL_TARGET;
+    // Meta pós-refeição baseada no protocolo: 1h = 140, 2h = 120 (SBD/FEBRASGO 2025)
+  const defaultPmt = protocol === '1h' ? 140 : 120;
+  const postMealTarget = patientSettings?.postMealTarget ?? defaultPmt;
     const protocol = patientSettings?.postMealProtocol ?? '2h';
     const labels = getReadingTypeLabels(protocol);
 
