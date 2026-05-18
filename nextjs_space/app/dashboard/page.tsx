@@ -95,10 +95,9 @@ export default function DashboardPage() {
     setLoading(true);
     const { startDate, endDate } = getEffectiveDates();
     const ft = patientSettings?.fastingTarget ?? 95;
-    // Meta pós-refeição baseada no protocolo: 1h = 140 mg/dL, 2h = 120 mg/dL (SBD/FEBRASGO 2025)
+    // Meta pós-refeição sempre baseada no protocolo: 1h = 140, 2h = 120 (SBD/FEBRASGO 2025)
     const protocol = patientSettings?.postMealProtocol ?? '2h';
-    const defaultPmt = protocol === '1h' ? 140 : 120;
-    const pmt = patientSettings?.postMealTarget ?? defaultPmt;
+    const pmt = protocol === '1h' ? 140 : 120;
 
     try {
       const [readingsRes, statsRes] = await Promise.all([
