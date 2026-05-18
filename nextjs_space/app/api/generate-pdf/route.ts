@@ -47,10 +47,9 @@ export async function POST(request: Request) {
     });
 
     const fastingTarget = patientSettings?.fastingTarget ?? DEFAULT_FASTING_TARGET;
-    // Meta pós-refeição baseada no protocolo: 1h = 140, 2h = 120 (SBD/FEBRASGO 2025)
+    // Meta sempre baseada no protocolo: 1h = 140, 2h = 120 (SBD/FEBRASGO 2025)
     const protocol = patientSettings?.postMealProtocol ?? '2h';
-    const defaultPmt = protocol === '1h' ? 140 : 120;
-    const postMealTarget = patientSettings?.postMealTarget ?? defaultPmt;
+    const postMealTarget = protocol === '1h' ? 140 : 120;
     const labels = getReadingTypeLabels(protocol);
 
     const readings = await prisma.gestationalGlucoseReading.findMany({
