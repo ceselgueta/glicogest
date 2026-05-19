@@ -95,7 +95,12 @@ export default function SignupPage() {
               </div>
             </Link>
             <h1 className="text-2xl font-bold text-gray-800">Crie sua conta</h1>
-            <p className="text-gray-500 mt-2">Comece a acompanhar sua glicemia agora</p>
+            <p className="text-gray-500 mt-1">Ative seu teste grátis de 4 dias</p>
+            <div className="flex items-center justify-center gap-4 mt-3 flex-wrap">
+              <span className="flex items-center gap-1 text-xs text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full">✓ 4 dias grátis</span>
+              <span className="flex items-center gap-1 text-xs text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full">✓ Sem cartão de crédito</span>
+              <span className="flex items-center gap-1 text-xs text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full">✓ 3 relatórios PDF</span>
+            </div>
           </div>
 
 
@@ -175,21 +180,7 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar senha <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repita a senha"
-                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 transition-all"
-                  required
-                  minLength={6}
-                />
-              </div>
-            </div>
+
 
             <button
               type="submit"
