@@ -123,11 +123,10 @@ export default function HomePage() {
             Feito para gestantes com diabetes gestacional
           </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-800 mb-6 leading-tight">
-            Suas medições de glicemia{" "}
+            Chega de chegar na consulta{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500">
-              organizadas
-            </span>{" "}
-            e prontas para o obstetra
+              sem os registros organizados
+            </span>
           </h2>
           <p className="text-lg sm:text-xl text-gray-500 max-w-3xl mx-auto mb-4">
             Registre no celular em segundos, acompanhe os valores e gere um relatório PDF completo para levar na consulta. Sem papel, sem planilha, sem confusão.
