@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Heart, ClipboardList, BarChart3, FileText, Shield, Clock, ArrowRight, Check, Star, AlertCircle, Smartphone, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { PLANS, formatPrice } from "@/lib/plans";
 
 const dores = [
@@ -267,14 +268,13 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          {/* Dashboard mockup */}
+          {/* Dashboard screenshot real */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100"
           >
-            {/* Browser bar */}
             <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
               <div className="flex gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
@@ -285,112 +285,39 @@ export default function HomePage() {
                 glicogest.com.br/dashboard
               </div>
             </div>
-            <div className="p-5">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Dashboard — últimos 7 dias</p>
-              {/* Stats mini */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {[
-                  { label: "Medições", value: "20", color: "bg-pink-50 text-gray-800" },
-                  { label: "Acima da meta", value: "5", color: "bg-red-50 text-red-600" },
-                  { label: "Na meta", value: "75%", color: "bg-green-50 text-green-600" },
-                ].map((s) => (
-                  <div key={s.label} className={`${s.color} rounded-xl p-3 text-center`}>
-                    <p className="text-lg font-bold">{s.value}</p>
-                    <p className="text-xs text-gray-500">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-              {/* Readings table */}
-              <div className="overflow-hidden rounded-xl border border-gray-100 text-xs">
-                <div className="grid grid-cols-5 bg-pink-50 px-3 py-2 font-semibold text-gray-600 text-center">
-                  <span className="text-left">Data</span>
-                  <span>Jejum</span>
-                  <span>Pós-café</span>
-                  <span>Pós-almoço</span>
-                  <span>Pós-janta</span>
-                </div>
-                {[
-                  { d: "17/05", v: [[92,1],[148,0],[136,1],[127,1]] },
-                  { d: "16/05", v: [[101,0],[132,1],[128,1],[135,1]] },
-                  { d: "15/05", v: [[88,1],[138,1],[145,0],[118,1]] },
-                  { d: "14/05", v: [[94,1],[127,1],[131,1],[122,1]] },
-                  { d: "13/05", v: [[97,0],[143,0],[119,1],[130,1]] },
-                ].map((row, i) => (
-                  <div key={i} className={`grid grid-cols-5 px-3 py-2 items-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}>
-                    <span className="text-gray-500 font-medium">{row.d}</span>
-                    {row.v.map(([val, ok], j) => (
-                      <span key={j} className={`text-center font-semibold mx-auto block w-11 py-0.5 rounded-full ${ok ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                        {val}
-                      </span>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-gray-400 mt-2">Meta: Jejum ≤95 · Pós-refeição ≤140 mg/dL (protocolo 1h)</p>
-            </div>
+            <Image
+              src="/screenshot-dashboard.png"
+              alt="Dashboard GlicoGest — acompanhamento de glicemia gestacional"
+              width={1260}
+              height={640}
+              className="w-full h-auto"
+            />
           </motion.div>
 
-          {/* PDF Report mockup */}
+          {/* PDF screenshot real */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100"
           >
-            {/* PDF Header */}
-            <div className="bg-gradient-to-r from-pink-500 to-rose-500 px-6 py-5 text-white">
-              <div className="flex items-center gap-2 mb-3 opacity-80">
-                <FileText className="w-4 h-4" />
-                <span className="text-xs font-medium">Relatório PDF — GlicoGest</span>
+            <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
               </div>
-              <h4 className="text-base font-bold mb-0.5">Relatório de Monitoramento Glicêmico</h4>
-              <p className="text-pink-100 text-xs">Paciente: Maria S. · 32ª semana de gestação</p>
-              <p className="text-pink-100 text-xs mt-0.5">Período: 13/05/2026 – 19/05/2026 · Obstetra: Dra. Fernanda Lima</p>
-            </div>
-            <div className="p-5">
-              {/* PDF Stats */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="border border-gray-100 rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold text-gray-800">20</p>
-                  <p className="text-xs text-gray-500">Total de medições</p>
-                </div>
-                <div className="border border-red-100 rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold text-red-600">5 · 25%</p>
-                  <p className="text-xs text-gray-500">Acima da meta</p>
-                </div>
-              </div>
-              {/* PDF table */}
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Tabela de medições diárias</p>
-              <div className="overflow-hidden rounded-xl border border-gray-100 text-xs">
-                <div className="grid grid-cols-5 bg-gray-50 px-3 py-2 font-semibold text-gray-600 text-center">
-                  <span className="text-left">Data</span>
-                  <span>Jejum</span>
-                  <span>Café</span>
-                  <span>Almoço</span>
-                  <span>Janta</span>
-                </div>
-                {[
-                  { d: "17/05", v: [[92,1],[148,0],[136,1],[127,1]] },
-                  { d: "16/05", v: [[101,0],[132,1],[128,1],[135,1]] },
-                  { d: "15/05", v: [[88,1],[138,1],[145,0],[118,1]] },
-                ].map((row, i) => (
-                  <div key={i} className={`grid grid-cols-5 px-3 py-1.5 items-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
-                    <span className="text-gray-500">{row.d}</span>
-                    {row.v.map(([val, ok], j) => (
-                      <span key={j} className={`text-center font-semibold ${ok ? "text-green-700" : "text-red-600 font-bold"}`}>
-                        {val}
-                      </span>
-                    ))}
-                  </div>
-                ))}
-                <div className="px-3 py-1.5 text-center text-gray-400 bg-gray-50/50">
-                  ... mais 17 registros
-                </div>
-              </div>
-              <div className="mt-4 p-3 bg-gray-50 rounded-xl text-xs text-gray-400 text-center italic">
-                ⚕️ Este relatório é apenas para acompanhamento. Consulte sempre seu obstetra.
+              <div className="flex-1 bg-white rounded px-3 py-0.5 text-xs text-gray-400 text-center border border-gray-200">
+                Relatório PDF — GlicoGest
               </div>
             </div>
+            <Image
+              src="/screenshot-pdf.png"
+              alt="Relatório PDF de glicemia gestacional gerado pelo GlicoGest"
+              width={680}
+              height={635}
+              className="w-full h-auto"
+            />
           </motion.div>
         </div>
 
