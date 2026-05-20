@@ -267,57 +267,65 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          {/* Dashboard screenshot real */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* App mobile screenshot */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100"
+            className="flex flex-col items-center gap-4"
           >
-            <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
-              <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-              </div>
-              <div className="flex-1 bg-white rounded px-3 py-0.5 text-xs text-gray-400 text-center border border-gray-200">
-                glicogest.com.br/dashboard
+            <p className="text-sm font-semibold text-pink-600 uppercase tracking-wide">Registre no celular</p>
+            <div className="relative">
+              {/* Phone frame */}
+              <div className="bg-gray-900 rounded-[44px] p-3 shadow-2xl border-4 border-gray-800 max-w-[280px] mx-auto">
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-gray-700 rounded-full z-10" />
+                <div className="rounded-[34px] overflow-hidden">
+                  <Image
+                    src="/screenshot-dashboard.png"
+                    alt="App GlicoGest no celular — lançar medições de glicemia"
+                    width={800}
+                    height={1600}
+                    className="w-full h-auto"
+                  />
+                </div>
               </div>
             </div>
-            <Image
-              src="/screenshot-dashboard.png"
-              alt="Dashboard GlicoGest — acompanhamento de glicemia gestacional"
-              width={1260}
-              height={640}
-              className="w-full h-auto"
-            />
+            <p className="text-gray-500 text-sm text-center max-w-xs">
+              Funciona direto no navegador do celular. Sem instalar nada.
+            </p>
           </motion.div>
 
-          {/* PDF screenshot real */}
+          {/* PDF screenshot */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100"
+            className="flex flex-col items-center gap-4"
           >
-            <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
-              <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+            <p className="text-sm font-semibold text-pink-600 uppercase tracking-wide">Relatório para o obstetra</p>
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 w-full">
+              <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                </div>
+                <div className="flex-1 bg-white rounded px-3 py-0.5 text-xs text-gray-400 text-center border border-gray-200">
+                  Relatório PDF — GlicoGest
+                </div>
               </div>
-              <div className="flex-1 bg-white rounded px-3 py-0.5 text-xs text-gray-400 text-center border border-gray-200">
-                Relatório PDF — GlicoGest
-              </div>
+              <Image
+                src="/screenshot-pdf.png"
+                alt="Relatório PDF de glicemia gestacional gerado pelo GlicoGest"
+                width={960}
+                height={1240}
+                className="w-full h-auto"
+              />
             </div>
-            <Image
-              src="/screenshot-pdf.png"
-              alt="Relatório PDF de glicemia gestacional gerado pelo GlicoGest"
-              width={680}
-              height={635}
-              className="w-full h-auto"
-            />
+            <p className="text-gray-500 text-sm text-center max-w-xs">
+              PDF gerado em 1 clique — completo e pronto para a consulta.
+            </p>
           </motion.div>
         </div>
 
