@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       if (payment && payment.userId === session.user.id) {
         // If already approved, return success
         if (payment.status === 'approved') {
-          return NextResponse.json({ success: true, status: 'approved' });
+          return NextResponse.json({ success: true, status: 'approved', amount: payment.amount });
         }
 
         // If we have MP payment ID, verify it
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
                   },
                 });
               }
-              return NextResponse.json({ success: true, status: 'approved' });
+              return NextResponse.json({ success: true, status: 'approved', amount: payment.amount });
             }
 
             return NextResponse.json({ success: true, status: mpPayment.status });

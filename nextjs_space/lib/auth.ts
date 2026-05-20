@@ -4,6 +4,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -122,6 +123,14 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
       },
+    },
+  },
+  events: {
+    // Dispara apenas para novos usuários via Google SSO (email/senha é tratado em /api/signup)
+    createUser: async ({ user }) => {
+      if (user.email) {
+        await sendWelcomeEmail(user.email, user.name);
+      }
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

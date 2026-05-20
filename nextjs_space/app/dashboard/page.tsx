@@ -40,6 +40,18 @@ export default function DashboardPage() {
     }
   }, [status, router]);
 
+  // Dispara CompleteRegistration para novos usuários via Google SSO (?welcome=1)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!window.location.search.includes('welcome=1')) return;
+    if ((window as any).fbq) {
+      (window as any).fbq('track', 'CompleteRegistration');
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete('welcome');
+    window.history.replaceState({}, '', url.toString());
+  }, []);
+
   // Fetch patient settings
   const fetchPatientSettings = useCallback(async () => {
     setPatientLoading(true);

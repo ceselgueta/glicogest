@@ -106,7 +106,7 @@ export default function SignupPage() {
 
           {/* Google SSO */}
           <button
-            onClick={() => signIn('google', { redirect: true, callbackUrl: '/dashboard' })}
+            onClick={() => signIn('google', { redirect: true, callbackUrl: '/dashboard?welcome=1' })}
             disabled={loading}
             className="w-full flex items-center justify-center gap-3 px-6 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all text-gray-700 font-medium"
           >

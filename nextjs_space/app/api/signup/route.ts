@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +36,9 @@ export async function POST(request: Request) {
         plan: 'free',
       },
     });
+
+    // Email D+0 — não bloqueia a resposta se falhar
+    sendWelcomeEmail(user.email, user.name).catch(() => {});
 
     return NextResponse.json({
       success: true,
