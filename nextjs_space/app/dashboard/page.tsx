@@ -17,7 +17,7 @@ import type { GlucoseReading, Stats, PatientSettings } from "@/lib/types";
 import { computePlanStatus } from "@/lib/plans";
 import type { PlanStatus } from "@/lib/plans";
 import { motion } from "framer-motion";
-import { Loader2, Heart } from "lucide-react";
+import { Loader2, Heart, CheckCircle2, Circle, X } from "lucide-react";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [showRegistration, setShowRegistration] = useState(false);
   const [editingPatient, setEditingPatient] = useState(false);
   const [planStatus, setPlanStatus] = useState<PlanStatus | null>(null);
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -249,6 +250,11 @@ export default function DashboardPage() {
         {/* Plan Status Banner */}
         <PlanBanner planStatus={planStatus} />
 
+        {/* Onboarding welcome card — shown only for new users with no readings */}
+        {patientSettings && planStatus?.isActive && readings.length === 0 && !welcomeDismissed && (
+          <WelcomeCard onDismiss={() => setWelcomeDismissed(true)} />
+        )}
+
         {patientSettings && <PatientSummary settings={patientSettings} onEdit={handleEditPatient} />}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -297,6 +303,53 @@ export default function DashboardPage() {
         <p>Controle Glicêmico Gestacional · Cuidando de você e do seu bebê</p>
       </footer>
     </div>
+  );
+}
+
+function WelcomeCard({ onDismiss }: { onDismiss: () => void }) {
+  const steps = [
+    { label: "Conta criada", done: true },
+    { label: "Dados cadastrados", done: true },
+    { label: "Registre sua primeira medição", done: false },
+    { label: "Gere seu primeiro relatório PDF", done: false },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-200 rounded-2xl p-6 relative"
+    >
+      <button
+        onClick={onDismiss}
+        aria-label="Fechar"
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <X className="w-5 h-5" />
+      </button>
+      <div className="flex items-center gap-2 mb-4">
+        <Heart className="w-5 h-5 text-pink-500" fill="currentColor" />
+        <h3 className="text-lg font-bold text-gray-800">Bem-vinda ao GlicoGest! 🎉</h3>
+      </div>
+      <p className="text-gray-500 text-sm mb-5">Siga os passos abaixo para começar:</p>
+      <ol className="space-y-3">
+        {steps.map((step, i) => (
+          <li key={i} className="flex items-center gap-3">
+            {step.done ? (
+              <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+            ) : (
+              <Circle className="w-5 h-5 text-gray-300 flex-shrink-0" />
+            )}
+            <span className={`text-sm ${step.done ? "text-gray-400 line-through" : "text-gray-700 font-medium"}`}>
+              {step.label}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="text-xs text-gray-400 mt-5">
+        Este guia desaparece automaticamente após seu primeiro registro.
+      </p>
+    </motion.div>
   );
 }
 

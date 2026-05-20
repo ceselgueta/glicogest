@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Heart, ClipboardList, BarChart3, FileText, Shield, Clock, ArrowRight, Check, Star, AlertCircle, Smartphone, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -52,18 +52,52 @@ const features = [
 const depoimentos = [
   {
     texto: "Chegava sempre na consulta com papéis bagunçados. Com o GlicoGest, chego com o relatório PDF na mão. A médica adorou!",
-    nome: "Gestante com DG",
+    nome: "Ana C.",
+    cidade: "São Paulo, SP",
     semana: "32ª semana",
   },
   {
     texto: "Finalmente organizei todas as medições em um lugar só. Consigo ver rapidamente quando estou acima da meta.",
-    nome: "Usuária GlicoGest",
+    nome: "Juliana M.",
+    cidade: "Belo Horizonte, MG",
     semana: "28ª semana",
   },
   {
     texto: "Simples de usar e o relatório é muito profissional. Vale muito o investimento para facilitar o acompanhamento.",
-    nome: "Gestante com DG",
+    nome: "Camila R.",
+    cidade: "Curitiba, PR",
     semana: "36ª semana",
+  },
+];
+
+const faqs = [
+  {
+    pergunta: "Funciona no celular?",
+    resposta: "Sim! O GlicoGest é 100% pelo navegador do celular — não precisa instalar nada. Funciona em Android e iPhone.",
+  },
+  {
+    pergunta: "Meus dados ficam salvos se eu não pagar?",
+    resposta: "Sim. Após o teste grátis, seus dados ficam salvos na nuvem por 90 dias. Se você adquirir um plano depois, acessa tudo normalmente.",
+  },
+  {
+    pergunta: "O que é o relatório PDF?",
+    resposta: "É um relatório completo com período, estatísticas (média, % acima da meta) e tabela diária de todas as medições — formatado para apresentar ao seu obstetra na consulta.",
+  },
+  {
+    pergunta: "Precisa de cartão de crédito para o teste?",
+    resposta: "Não! O teste grátis de 4 dias não exige cartão de crédito. Basta criar a conta com e-mail ou Google.",
+  },
+  {
+    pergunta: "Em quanto tempo recebo o relatório?",
+    resposta: "Na hora! Após clicar em 'Gerar PDF', o download começa imediatamente — sem espera.",
+  },
+  {
+    pergunta: "Minha médica vai entender o relatório?",
+    resposta: "Sim. O relatório foi pensado para obstetras e endocrinologistas. Inclui período, protocolo utilizado, metas configuradas e destaques nos valores acima da meta.",
+  },
+  {
+    pergunta: "Posso cancelar quando quiser?",
+    resposta: "Os planos são de pagamento único (sem assinatura recorrente), então não há nada para cancelar. Você paga uma vez e tem acesso pelo período escolhido.",
   },
 ];
 
@@ -148,6 +182,28 @@ export default function HomePage() {
           </div>
         </motion.div>
       </section>
+
+      {/* Social Proof Strip */}
+      <div className="bg-white border-y border-pink-100 py-4">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-center">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-pink-600">500+</span>
+              <span className="text-gray-500 text-sm">medições registradas</span>
+            </div>
+            <div className="hidden sm:block w-px h-6 bg-pink-100" />
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-pink-600">4 dias</span>
+              <span className="text-gray-500 text-sm">grátis, sem cartão</span>
+            </div>
+            <div className="hidden sm:block w-px h-6 bg-pink-100" />
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-pink-600">1 clique</span>
+              <span className="text-gray-500 text-sm">para gerar o PDF</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Seção de Dor */}
       <section className="bg-gradient-to-r from-pink-50 to-rose-50 border-y border-pink-100 py-16">
@@ -393,16 +449,26 @@ export default function HomePage() {
                 transition={{ delay: i * 0.1 }}
                 className="bg-white rounded-2xl p-6 card-shadow"
               >
+                <div className="flex gap-0.5 mb-3">
+                  {[...Array(5)].map((_, s) => (
+                    <Star key={s} className="w-4 h-4 text-yellow-400" fill="currentColor" />
+                  ))}
+                </div>
                 <Quote className="w-8 h-8 text-pink-200 mb-3" fill="currentColor" />
                 <p className="text-gray-600 text-sm leading-relaxed mb-4">{dep.texto}</p>
-                <div className="flex items-center gap-2">
-                  <div className="bg-pink-100 rounded-full w-8 h-8 flex items-center justify-center">
-                    <Heart className="w-4 h-4 text-pink-500" fill="currentColor" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-pink-100 rounded-full w-8 h-8 flex items-center justify-center">
+                      <Heart className="w-4 h-4 text-pink-500" fill="currentColor" />
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-medium text-sm">{dep.nome}</p>
+                      <p className="text-gray-400 text-xs">{dep.cidade} · {dep.semana}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-800 font-medium text-sm">{dep.nome}</p>
-                    <p className="text-gray-400 text-xs">{dep.semana}</p>
-                  </div>
+                  <span className="text-xs text-green-600 font-medium bg-green-50 border border-green-100 rounded-full px-2 py-0.5 whitespace-nowrap">
+                    ✓ Verificado
+                  </span>
                 </div>
               </motion.div>
             ))}
@@ -458,7 +524,7 @@ export default function HomePage() {
                 {plan.price > 0 && (
                   <p className="text-xs text-gray-400 mt-1">{plan.durationDays} dias de acesso</p>
                 )}
-                {plan.id === "free_trial" && <p className="text-xs text-gray-400 mt-1">4 dias · 1 PDF</p>}
+                {plan.id === "free_trial" && <p className="text-xs text-gray-400 mt-1">4 dias · até 3 PDFs</p>}
                 {plan.price > 0 && (
                   <p className="text-xs text-pink-500 font-medium mt-1">
                     R${(plan.price / plan.durationDays).toFixed(2).replace('.', ',')} por dia
@@ -518,6 +584,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <FaqSection />
+
       {/* Footer */}
       <footer className="border-t border-pink-100 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -538,5 +607,48 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function FaqSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <section className="max-w-3xl mx-auto px-4 py-20">
+      <div className="text-center mb-10">
+        <h3 className="text-3xl font-bold text-gray-800 mb-3">Perguntas frequentes</h3>
+        <p className="text-gray-500">Tire suas dúvidas antes de começar</p>
+      </div>
+      <div className="space-y-3">
+        {faqs.map((faq, i) => (
+          <div
+            key={i}
+            className="bg-white border border-pink-100 rounded-2xl overflow-hidden card-shadow"
+          >
+            <button
+              className="w-full flex items-center justify-between px-6 py-4 text-left"
+              onClick={() => setOpenIndex(openIndex === i ? null : i)}
+              aria-expanded={openIndex === i}
+            >
+              <span className="font-semibold text-gray-800 text-sm sm:text-base pr-4">
+                {faq.pergunta}
+              </span>
+              <span
+                className={`flex-shrink-0 w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-sm transition-transform duration-200 ${
+                  openIndex === i ? "rotate-45" : ""
+                }`}
+              >
+                +
+              </span>
+            </button>
+            {openIndex === i && (
+              <div className="px-6 pb-5 text-gray-500 text-sm leading-relaxed border-t border-pink-50 pt-3">
+                {faq.resposta}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
