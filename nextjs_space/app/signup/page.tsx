@@ -15,7 +15,6 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -35,11 +34,6 @@ export default function SignupPage() {
       toast.error('Senha deve ter no mínimo 6 caracteres');
       return;
     }
-    if (password !== confirmPassword) {
-      toast.error('As senhas não coincidem');
-      return;
-    }
-
     setLoading(true);
     try {
       const res = await fetch('/api/signup', {
