@@ -56,9 +56,9 @@ export default function SignupPage() {
           router.replace('/login');
         } else {
           toast.success('Conta criada com sucesso!');
-          // Meta Pixel - evento de cadastro
-          if (typeof window !== 'undefined' && (window as any).fbq) {
-            (window as any).fbq('track', 'CompleteRegistration');
+          // Meta Pixel — deduplicação com CAPI via event_id
+          if (typeof window !== 'undefined' && (window as any).fbq && data.pixelEventId) {
+            (window as any).fbq('track', 'CompleteRegistration', {}, { eventID: data.pixelEventId });
           }
           router.replace('/dashboard');
         }

@@ -52,6 +52,10 @@ export default function PlanosPage() {
       const data = await res.json();
       if (data?.success) {
         toast.success("Teste grátis ativado! Aproveite 4 dias completos.");
+        // Meta Pixel — deduplicação com CAPI via event_id
+        if (typeof window !== 'undefined' && (window as any).fbq && data.pixelEventId) {
+          (window as any).fbq('track', 'StartTrial', { currency: 'BRL', value: 0 }, { eventID: data.pixelEventId });
+        }
         await update();
         router.push("/dashboard");
       } else {

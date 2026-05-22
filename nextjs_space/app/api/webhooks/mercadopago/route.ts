@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { paymentApi } from '@/lib/mercadopago';
 import { getPlanById } from '@/lib/plans';
 import crypto from 'crypto';
+import { sendCapiEvent, generateEventId } from '@/lib/meta-capi';
 
 export const dynamic = 'force-dynamic';
 
@@ -130,6 +131,18 @@ export async function POST(req: NextRequest) {
           });
 
           console.log(`[MP Webhook] Plan ${plan.id} activated for user ${payment.userId} until ${expiresAt.toISOString()}`);
+
+          // Meta CAPI — Purchase (server-side, disparado pelo webhook do MP)
+          sendCapiEvent({
+            eventName: 'Purchase',
+            email: payment.user.email,
+            eventId: generateEventId(),
+            sourceUrl: 'https://glicogest.com.br/pagamento/resultado',
+            customData: {
+              currency: 'BRL',
+              value: mpPayment.transaction_amount ?? 0,
+            },
+          }).catch(() => {});
         }
       }
     }

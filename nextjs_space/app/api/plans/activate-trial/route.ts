@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getRequiredSession } from '@/lib/get-session';
+import { sendCapiEvent, generateEventId } from '@/lib/meta-capi';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,9 +64,20 @@ export async function POST() {
       },
     });
 
+    // Meta CAPI — StartTrial (server-side)
+    const pixelEventId = generateEventId();
+    sendCapiEvent({
+      eventName: 'StartTrial',
+      email: session.user.email!,
+      eventId: pixelEventId,
+      sourceUrl: 'https://glicogest.com.br/planos',
+      customData: { currency: 'BRL', value: 0 },
+    }).catch(() => {});
+
     return NextResponse.json({
       success: true,
       message: 'Teste grátis ativado com sucesso!',
+      pixelEventId,
       data: {
         plan: 'free_trial',
         planExpiresAt: expiresAt.toISOString(),

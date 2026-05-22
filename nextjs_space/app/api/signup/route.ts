@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { sendVerificationEmail } from '@/lib/email';
+import { sendCapiEvent, generateEventId } from '@/lib/meta-capi';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,9 +47,19 @@ export async function POST(request: Request) {
     );
     sendVerificationEmail(user.email, user.name, verificationToken).catch(() => {});
 
+    // Meta CAPI — CompleteRegistration (server-side, bypassa ad blockers)
+    const pixelEventId = generateEventId();
+    sendCapiEvent({
+      eventName: 'CompleteRegistration',
+      email: user.email,
+      eventId: pixelEventId,
+      sourceUrl: 'https://glicogest.com.br/signup',
+    }).catch(() => {});
+
     return NextResponse.json({
       success: true,
       data: { id: user.id, email: user.email, name: user.name },
+      pixelEventId,
     });
   } catch (error) {
     console.error('Signup error:', error);
