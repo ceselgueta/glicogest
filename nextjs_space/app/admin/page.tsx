@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Users, TrendingUp, Activity, Crown, RefreshCw, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Users, TrendingUp, Activity, Crown, RefreshCw, CheckCircle, Clock, XCircle, Trash2, MailCheck } from "lucide-react";
 
 const ADMIN_EMAIL = "ceselgueta@gmail.com";
 
@@ -34,6 +34,7 @@ type User = {
   planStartedAt: string | null;
   hasUsedTrial: boolean;
   paymentStatus: string;
+  emailVerified: string | null;
   createdAt: string;
   _count: { readings: number };
 };
@@ -68,6 +69,8 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
 
@@ -113,6 +116,45 @@ export default function AdminPage() {
       }
     } finally {
       setActivating(null);
+    }
+  }
+
+  async function deleteUser(email: string) {
+    if (!confirm(`Excluir usuário ${email}? Esta ação não pode ser desfeita.`)) return;
+    setDeleting(email);
+    try {
+      const res = await fetch("/api/admin/delete-user", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.success || data.error === undefined) {
+        await fetchStats();
+      } else {
+        alert(data.error || "Erro ao excluir usuário");
+      }
+    } finally {
+      setDeleting(null);
+    }
+  }
+
+  async function verifyEmail(email: string) {
+    setVerifying(email);
+    try {
+      const res = await fetch("/api/admin/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchStats();
+      } else {
+        alert(data.error || "Erro ao verificar email");
+      }
+    } finally {
+      setVerifying(null);
     }
   }
 
@@ -238,6 +280,7 @@ export default function AdminPage() {
                   <th className="px-4 py-3 text-left">Expira</th>
                   <th className="px-4 py-3 text-center">Registros</th>
                   <th className="px-4 py-3 text-left">Cadastro</th>
+                  <th className="px-4 py-3 text-left">Email</th>
                   <th className="px-4 py-3 text-left">Status</th>
                   <th className="px-4 py-3 text-left">Ações</th>
                 </tr>
@@ -270,6 +313,21 @@ export default function AdminPage() {
                       <td className="px-4 py-3 text-center text-gray-600">{user._count.readings}</td>
                       <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(user.createdAt)}</td>
                       <td className="px-4 py-3">
+                        {user.emailVerified ? (
+                          <span className="flex items-center gap-1 text-emerald-500 text-xs"><CheckCircle size={13} /> Verificado</span>
+                        ) : (
+                          <button
+                            onClick={() => verifyEmail(user.email)}
+                            disabled={verifying === user.email}
+                            title="Verificar email manualmente"
+                            className="flex items-center gap-1 text-amber-500 text-xs hover:text-amber-700 disabled:opacity-50"
+                          >
+                            <MailCheck size={13} />
+                            {verifying === user.email ? "..." : "Pendente"}
+                          </button>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
                         {user.plan === "free" ? (
                           <span className="flex items-center gap-1 text-gray-400 text-xs"><XCircle size={13} /> Sem plano</span>
                         ) : expired ? (
@@ -282,20 +340,30 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <select
-                          disabled={activating === user.email}
-                          onChange={(e) => {
-                            if (e.target.value) activatePlan(user.email, e.target.value);
-                            e.target.value = "";
-                          }}
-                          defaultValue=""
-                          className="border rounded px-2 py-1 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-200 disabled:opacity-50"
-                        >
-                          <option value="" disabled>Ativar plano...</option>
-                          <option value="monthly">Mensal (30d)</option>
-                          <option value="quarterly">3 Meses (90d)</option>
-                          <option value="gestation_full">Gestação (270d)</option>
-                        </select>
+                        <div className="flex items-center gap-2">
+                          <select
+                            disabled={activating === user.email}
+                            onChange={(e) => {
+                              if (e.target.value) activatePlan(user.email, e.target.value);
+                              e.target.value = "";
+                            }}
+                            defaultValue=""
+                            className="border rounded px-2 py-1 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-200 disabled:opacity-50"
+                          >
+                            <option value="" disabled>Ativar plano...</option>
+                            <option value="monthly">Mensal (30d)</option>
+                            <option value="quarterly">3 Meses (90d)</option>
+                            <option value="gestation_full">Gestação (270d)</option>
+                          </select>
+                          <button
+                            onClick={() => deleteUser(user.email)}
+                            disabled={deleting === user.email}
+                            title="Excluir usuário"
+                            className="p-1 text-red-400 hover:text-red-600 disabled:opacity-50 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -44,6 +44,7 @@ export async function GET() {
           planStartedAt: true,
           hasUsedTrial: true,
           paymentStatus: true,
+          emailVerified: true,
           createdAt: true,
           _count: { select: { readings: true } },
         },
