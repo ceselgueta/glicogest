@@ -4,21 +4,28 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const FROM = 'GlicoGest <noreply@glicogest.com.br>';
 const BASE_URL = 'https://www.glicogest.com.br';
 
-async function send(to: string, subject: string, html: string) {
+async function send(to: string, subject: string, html: string): Promise<boolean> {
   if (!resend) {
-    console.log(`[Email] RESEND_API_KEY não configurado — email não enviado para ${to}`);
-    return;
+    console.warn(`[Email] RESEND_API_KEY não configurado — email não enviado para ${to}`);
+    return false;
   }
   try {
-    await resend.emails.send({ from: FROM, to, subject, html });
+    const result = await resend.emails.send({ from: FROM, to, subject, html });
+    if ((result as any)?.error) {
+      console.error(`[Email] Resend retornou erro para ${to}:`, JSON.stringify((result as any).error));
+      return false;
+    }
+    return true;
   } catch (err) {
-    console.error(`[Email] Falha ao enviar para ${to}:`, err);
+    console.error(`[Email] Exceção ao enviar para ${to}:`, err);
+    return false;
   }
 }
 
-export async function sendVerificationEmail(to: string, name: string | null | undefined, token: string) {
+// Retorna true se o email foi enviado com sucesso, false se falhou
+export async function sendVerificationEmail(to: string, name: string | null | undefined, token: string): Promise<boolean> {
   const first = name?.split(' ')[0] || 'querida';
-  await send(to, 'Confirme seu email para ativar o GlicoGest', verificationHtml(first, token));
+  return send(to, 'Confirme seu email para ativar o GlicoGest', verificationHtml(first, token));
 }
 
 export async function sendWelcomeEmail(to: string, name?: string | null) {

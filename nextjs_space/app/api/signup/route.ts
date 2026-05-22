@@ -39,13 +39,20 @@ export async function POST(request: Request) {
       },
     });
 
-    // Envia email de verificação — não bloqueia a resposta se falhar
+    // Envia email de verificação; se falhar, auto-verifica para não bloquear o usuário
     const verificationToken = jwt.sign(
       { userId: user.id, email: user.email, purpose: 'email-verify' },
       process.env.NEXTAUTH_SECRET!,
       { expiresIn: '48h' }
     );
-    sendVerificationEmail(user.email, user.name, verificationToken).catch(() => {});
+    const emailSent = await sendVerificationEmail(user.email, user.name, verificationToken).catch(() => false);
+    if (!emailSent) {
+      console.warn(`[Signup] Email de verificação falhou para ${user.email} — auto-verificando para não bloquear acesso`);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: new Date() },
+      });
+    }
 
     // Meta CAPI — CompleteRegistration (server-side, bypassa ad blockers)
     const pixelEventId = generateEventId();
