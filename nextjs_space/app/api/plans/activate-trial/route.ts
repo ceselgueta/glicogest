@@ -13,11 +13,23 @@ export async function POST() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { plan: true, hasUsedTrial: true },
+      select: { plan: true, hasUsedTrial: true, emailVerified: true, createdAt: true },
     });
 
     if (!user) {
       return NextResponse.json({ success: false, error: 'Usuário não encontrado' }, { status: 404 });
+    }
+
+    // Require email verification for accounts created after the feature launch date.
+    // Accounts created before this date are grandfathered in.
+    const FEATURE_LAUNCH_DATE = new Date('2026-05-21T00:00:00Z');
+    const isNewAccount = user.createdAt >= FEATURE_LAUNCH_DATE;
+    if (isNewAccount && !user.emailVerified) {
+      return NextResponse.json({
+        success: false,
+        error: 'Verifique seu email antes de ativar o teste grátis. Acesse sua caixa de entrada e clique no link que enviamos.',
+        code: 'EMAIL_NOT_VERIFIED',
+      }, { status: 403 });
     }
 
     if (user.hasUsedTrial) {

@@ -38,6 +38,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           plan: user.plan,
           planExpiresAt: user.planExpiresAt?.toISOString() ?? null,
+          emailVerified: user.emailVerified?.toISOString() ?? null,
         } as any;
       },
     }),
@@ -52,6 +53,7 @@ export const authOptions: NextAuthOptions = {
         token.hasUsedTrial = (user as any).hasUsedTrial ?? false;
         token.pdfReportsGenerated = (user as any).pdfReportsGenerated ?? 0;
         token.paymentStatus = (user as any).paymentStatus ?? 'not_required';
+        token.emailVerified = (user as any).emailVerified ?? null;
       }
       // Refresh plan info from DB on session update or if missing
       if (trigger === 'update' || !token.plan) {
@@ -65,6 +67,7 @@ export const authOptions: NextAuthOptions = {
               hasUsedTrial: true,
               pdfReportsGenerated: true,
               paymentStatus: true,
+              emailVerified: true,
             },
           });
           if (dbUser) {
@@ -74,6 +77,7 @@ export const authOptions: NextAuthOptions = {
             token.hasUsedTrial = dbUser.hasUsedTrial;
             token.pdfReportsGenerated = dbUser.pdfReportsGenerated;
             token.paymentStatus = dbUser.paymentStatus;
+            token.emailVerified = dbUser.emailVerified?.toISOString() ?? null;
           }
         } catch {
           // Silently fail - use cached token data
@@ -90,6 +94,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).hasUsedTrial = token.hasUsedTrial ?? false;
         (session.user as any).pdfReportsGenerated = token.pdfReportsGenerated ?? 0;
         (session.user as any).paymentStatus = token.paymentStatus ?? 'not_required';
+        (session.user as any).emailVerified = token.emailVerified ?? null;
       }
       return session;
     },

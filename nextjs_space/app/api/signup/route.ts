@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { sendWelcomeEmail } from '@/lib/email';
+import jwt from 'jsonwebtoken';
+import { sendVerificationEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,8 +38,13 @@ export async function POST(request: Request) {
       },
     });
 
-    // Email D+0 — não bloqueia a resposta se falhar
-    sendWelcomeEmail(user.email, user.name).catch(() => {});
+    // Envia email de verificação — não bloqueia a resposta se falhar
+    const verificationToken = jwt.sign(
+      { userId: user.id, email: user.email, purpose: 'email-verify' },
+      process.env.NEXTAUTH_SECRET!,
+      { expiresIn: '48h' }
+    );
+    sendVerificationEmail(user.email, user.name, verificationToken).catch(() => {});
 
     return NextResponse.json({
       success: true,

@@ -18,6 +18,7 @@ import { computePlanStatus } from "@/lib/plans";
 import type { PlanStatus } from "@/lib/plans";
 import { motion } from "framer-motion";
 import { Loader2, Heart, CheckCircle2, Circle, X } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -34,6 +35,8 @@ export default function DashboardPage() {
   const [editingPatient, setEditingPatient] = useState(false);
   const [planStatus, setPlanStatus] = useState<PlanStatus | null>(null);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [verifyBannerDismissed, setVerifyBannerDismissed] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -246,6 +249,37 @@ export default function DashboardPage() {
             Registre e acompanhe as medidas glicêmicas diárias de forma simples e organizada
           </p>
         </motion.div>
+
+        {/* Email verification banner */}
+        {!verifyBannerDismissed && session && !(session.user as any)?.emailVerified && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-start gap-3">
+            <span className="text-xl mt-0.5">📧</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-amber-800 text-sm">Confirme seu email para ativar o teste grátis</p>
+              <p className="text-amber-700 text-xs mt-0.5">Enviamos um link para <strong>{session.user?.email}</strong>. Verifique sua caixa de entrada (e o spam).</p>
+              <button
+                onClick={async () => {
+                  setResendLoading(true);
+                  try {
+                    await fetch('/api/auth/resend-verification', { method: 'POST' });
+                    toast.success('Email reenviado! Verifique sua caixa de entrada.');
+                  } catch {
+                    toast.error('Erro ao reenviar. Tente novamente.');
+                  } finally {
+                    setResendLoading(false);
+                  }
+                }}
+                disabled={resendLoading}
+                className="mt-2 text-xs font-medium text-amber-800 underline hover:text-amber-900 disabled:opacity-50"
+              >
+                {resendLoading ? 'Reenviando...' : 'Reenviar email de confirmação'}
+              </button>
+            </div>
+            <button onClick={() => setVerifyBannerDismissed(true)} className="text-amber-400 hover:text-amber-600 flex-shrink-0">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Plan Status Banner */}
         <PlanBanner planStatus={planStatus} />

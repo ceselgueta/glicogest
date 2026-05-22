@@ -16,6 +16,11 @@ async function send(to: string, subject: string, html: string) {
   }
 }
 
+export async function sendVerificationEmail(to: string, name: string | null | undefined, token: string) {
+  const first = name?.split(' ')[0] || 'querida';
+  await send(to, 'Confirme seu email para ativar o GlicoGest', verificationHtml(first, token));
+}
+
 export async function sendWelcomeEmail(to: string, name?: string | null) {
   const first = name?.split(' ')[0] || 'querida';
   await send(to, 'Bem-vinda ao GlicoGest! 🌸 Veja como começar', welcomeHtml(first));
@@ -32,6 +37,22 @@ export async function sendTrialExpiringEmail(to: string, name?: string | null) {
 }
 
 // ─── Templates ───────────────────────────────────────────────────────────────
+
+function verificationHtml(first: string, token: string) {
+  const link = `${BASE_URL}/api/auth/verify-email?token=${token}`;
+  return wrapper(`
+    <h2 style="color:#1f2937;font-size:22px;font-weight:700;margin:0 0 8px;">Olá, ${first}! 🌸</h2>
+    <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 20px;">Sua conta no GlicoGest foi criada! Confirme seu email para ativar seu <strong style="color:#ec4899;">teste grátis de 4 dias</strong>.</p>
+
+    <div style="background:#fdf2f8;border-radius:12px;padding:20px;margin-bottom:24px;text-align:center;">
+      <p style="color:#374151;font-weight:700;font-size:14px;margin:0 0 12px;">Clique no botão abaixo para confirmar:</p>
+      ${btn(link, 'Confirmar meu email →')}
+      <p style="color:#9ca3af;font-size:12px;margin:12px 0 0;">O link é válido por 48 horas.</p>
+    </div>
+
+    <p style="color:#9ca3af;font-size:13px;text-align:center;margin:0;">Se você não criou esta conta, ignore este email.</p>
+  `);
+}
 
 function wrapper(content: string) {
   return `<!DOCTYPE html>
