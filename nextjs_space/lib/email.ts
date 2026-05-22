@@ -1,14 +1,15 @@
 import { Resend } from 'resend';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = 'GlicoGest <noreply@glicogest.com.br>';
 const BASE_URL = 'https://www.glicogest.com.br';
 
 async function send(to: string, subject: string, html: string): Promise<boolean> {
-  if (!resend) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
     console.warn(`[Email] RESEND_API_KEY não configurado — email não enviado para ${to}`);
     return false;
   }
+  const resend = new Resend(apiKey);
   try {
     const result = await resend.emails.send({ from: FROM, to, subject, html });
     if ((result as any)?.error) {
