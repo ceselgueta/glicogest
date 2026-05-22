@@ -73,6 +73,8 @@ export default function AdminPage() {
   const [verifying, setVerifying] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
+  const [testEmailResult, setTestEmailResult] = useState<any>(null);
+  const [testingEmail, setTestingEmail] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -139,6 +141,19 @@ export default function AdminPage() {
     }
   }
 
+  async function testEmail() {
+    setTestingEmail(true);
+    setTestEmailResult(null);
+    try {
+      const res = await fetch("/api/admin/test-email", { method: "POST" });
+      setTestEmailResult(await res.json());
+    } catch (e: any) {
+      setTestEmailResult({ exception: e?.message });
+    } finally {
+      setTestingEmail(false);
+    }
+  }
+
   async function verifyEmail(email: string) {
     setVerifying(email);
     try {
@@ -192,16 +207,39 @@ export default function AdminPage() {
           <Crown className="text-pink-500" size={22} />
           <h1 className="text-lg font-semibold text-gray-800">Admin — GlicoGest</h1>
         </div>
-        <button
-          onClick={fetchStats}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          <RefreshCw size={15} />
-          Atualizar
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={testEmail}
+            disabled={testingEmail}
+            className="flex items-center gap-2 text-sm text-blue-500 hover:text-blue-700 transition-colors disabled:opacity-50"
+          >
+            <MailCheck size={15} />
+            {testingEmail ? "Testando..." : "Testar Email"}
+          </button>
+          <button
+            onClick={fetchStats}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <RefreshCw size={15} />
+            Atualizar
+          </button>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        {/* Resultado do teste de email */}
+        {testEmailResult && (
+          <div className="bg-white rounded-xl border p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-gray-700">Diagnóstico Resend</h2>
+              <button onClick={() => setTestEmailResult(null)} className="text-gray-400 hover:text-gray-600 text-xs">Fechar</button>
+            </div>
+            <pre className="bg-gray-50 rounded-lg p-4 text-xs overflow-auto max-h-64 text-gray-800 whitespace-pre-wrap">
+              {JSON.stringify(testEmailResult, null, 2)}
+            </pre>
+          </div>
+        )}
+
         {/* Cards de resumo */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
