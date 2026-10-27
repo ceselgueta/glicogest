@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central Financeira</title>
+<style>
+  :root{
+    --bg:#0e1420;--card:#19212f;--card2:#222c3d;--line:#2c3749;
+    --ink:#e9eef6;--muted:#8a97aa;
+    --blue:#5b8def;--teal:#2dd4bf;--green:#34d399;--greenbg:#102a20;
+    --red:#f87171;--redbg:#2e1719;--amber:#fbbf24;--amberbg:#2a2210;--purple:#a78bfa;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--ink);line-height:1.4;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:14.5px;padding-bottom:44px}
+  .wrap{max-width:600px;margin:0 auto;padding:0 12px}
+  header{background:linear-gradient(135deg,#1a2740,#0f1830);color:#fff;padding:20px 14px 15px;text-align:center;
+    border-bottom:1px solid var(--line)}
+  header h1{font-size:20px;font-weight:800}
+  header p{opacity:.75;font-size:12px;margin-top:3px}
+  .chips{display:flex;gap:7px;overflow-x:auto;padding:13px 2px 5px;-webkit-overflow-scrolling:touch}
+  .chip{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;
+    font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .chip.neg{border-color:var(--red);color:#f3a3a3} .chip.active.neg{background:var(--red);color:#fff}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:12px 0}
+  .card h2{font-size:15.5px;color:var(--ink);margin-bottom:3px;display:flex;align-items:center;gap:7px}
+  .card .hint{font-size:12px;color:var(--muted);margin-bottom:11px;line-height:1.35}
+  .result{border-radius:var(--radius);padding:16px;margin:12px 0;color:#fff;border:1px solid rgba(255,255,255,.08)}
+  .result.green{background:linear-gradient(135deg,#065f46,#059669)}
+  .result.amber{background:linear-gradient(135deg,#92400e,#b45309)}
+  .result.red{background:linear-gradient(135deg,#991b1b,#b91c1c)}
+  .result .top{display:flex;justify-content:space-between;align-items:center}
+  .result .lbl{font-size:11px;opacity:.85;text-transform:uppercase;letter-spacing:.5px}
+  .result .val{font-size:29px;font-weight:800;line-height:1.1}
+  .result .saldo{text-align:right;font-size:12px;opacity:.9}
+  .result .saldo b{font-size:20px;display:block}
+  .result .ex{font-size:12.5px;opacity:.9;margin-top:8px;border-top:1px solid rgba(255,255,255,.2);padding-top:7px}
+  .row{display:flex;gap:9px;align-items:center;margin-bottom:8px}
+  .row label{flex:1.4;font-size:14px;min-width:0;color:var(--ink)}
+  .row .money{flex:1;min-width:0;max-width:140px}
+  input[type=text],input[type=number]{width:100%;background:var(--card2);border:1px solid var(--line);
+    color:var(--ink);border-radius:9px;padding:10px;font-size:14px;outline:none}
+  input::placeholder{color:#6b7688}
+  input:focus{border-color:var(--teal)}
+  input[readonly]{background:#141b27;color:var(--muted)}
+  .money{position:relative}
+  .money::before{content:"R$";position:absolute;left:9px;top:10px;color:var(--muted);font-size:11px;pointer-events:none;z-index:1}
+  .money input{padding-left:28px;text-align:right}
+  select{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:10px 8px;font-size:13.5px;outline:none}
+  select:focus{border-color:var(--teal)}
+  /* cartão */
+  .cardrow{padding:12px 0;border-bottom:1px solid var(--line)}
+  .cardrow:last-child{border-bottom:none}
+  .crtop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .crtop .nm{font-size:14.5px;font-weight:600}
+  .crtop .fat{font-size:13px;color:var(--muted);white-space:nowrap}
+  .crctrl{display:flex;align-items:center;gap:9px;margin-top:9px}
+  .crctrl select{flex:0 0 130px}
+  .crctrl .pay{margin-left:auto;font-weight:700;font-size:14.5px}
+  .crnx{margin-top:9px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px;
+    background:var(--amberbg);border-radius:8px;padding:8px 10px}
+  .crnx input{width:52px;padding:6px;text-align:center}
+  .pill{display:inline-block;padding:3px 9px;border-radius:7px;font-size:11px;font-weight:700}
+  .pill.r{background:var(--redbg);color:var(--red)} .pill.g{background:var(--greenbg);color:var(--green)} .pill.a{background:var(--amberbg);color:var(--amber)}
+  .sub{text-align:right;font-size:13px;color:var(--muted);margin-top:9px}.sub b{color:var(--ink)}
+  .flag{border-radius:9px;padding:10px 12px;margin:8px 0;font-size:12.8px;border-left:3px solid;line-height:1.4}
+  .flag.red{background:var(--redbg);border-color:var(--red)} .flag.green{background:var(--greenbg);border-color:var(--green)} .flag.amber{background:var(--amberbg);border-color:var(--amber)} .flag.navy{background:#15203a;border-color:var(--blue)}
+  .flag b{color:#fff}
+  .overview{overflow-x:auto;margin:0 -4px}
+  table.ov{width:100%;border-collapse:collapse;font-size:12px;min-width:470px}
+  table.ov th,table.ov td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  table.ov th:first-child,table.ov td:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+  table.ov th{font-size:10.5px;text-transform:uppercase;color:var(--muted)}
+  table.ov .pos{color:var(--green);font-weight:700} table.ov .negv{color:var(--red);font-weight:700}
+  table.ov tr.sel td{background:#1f2a3d}
+  table.ov tr.sel td:first-child{background:#1f2a3d}
+  .asset{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .asset:last-child{border-bottom:none}
+  .asset .nm{flex:1;font-size:14px}.asset .nm small{color:var(--muted);display:block;font-size:11px;margin-top:2px;line-height:1.3}
+  .tog{width:46px;height:26px;background:#39465b;border-radius:999px;position:relative;cursor:pointer;flex:0 0 auto;transition:.2s}
+  .tog.on{background:var(--green)}
+  .tog::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;background:#fff;border-radius:50%;transition:.2s}
+  .tog.on::after{left:22px}
+  .asset select{flex:0 0 84px}
+  .goalc{display:flex;gap:12px;margin:12px 0;align-items:flex-start}
+  .goalc .ic{font-size:24px}.goalc .b{flex:1}.goalc .b>b{font-size:14px;color:var(--ink)}
+  .bar{height:12px;background:#2a3547;border-radius:7px;overflow:hidden;margin:7px 0 4px}
+  .bar span{display:block;height:100%;background:var(--teal)}.bar span.g{background:var(--green)}
+  .muted{font-size:11.8px;color:var(--muted)}
+  .btn{background:var(--teal);color:#06231f;border:none;padding:13px;border-radius:11px;font-weight:800;font-size:14.5px;cursor:pointer;width:100%}
+  .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+  .flash{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#06231f;padding:10px 18px;border-radius:999px;font-weight:800;font-size:12.5px;opacity:0;transition:.3s;pointer-events:none;z-index:50}
+  .flash.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>💼 Central Financeira</h1>
+  <p>Seus números reais · parcele e veja o efeito nos próximos meses</p>
+</header>
+<div class="wrap">
+
+  <div class="chips" id="chips"></div>
+
+  <div class="result red" id="resBox">
+    <div class="top">
+      <div><div class="lbl">Resultado · <span id="resMes">—</span></div><div class="val" id="resVal">R$ 0</div></div>
+      <div class="saldo">Saldo acumulado<b id="resSaldo">R$ 0</b></div>
+    </div>
+    <div class="ex" id="resEx"></div>
+  </div>
+  <div id="flags"></div>
+
+  <div class="card">
+    <h2>💰 Quanto entrou</h2>
+    <p class="hint">Frete é variável — ajuste o do mês.</p>
+    <div class="row"><label>Frete (van)</label><div class="money"><input type="number" id="in_freight" oninput="setVal('freight',this.value)"></div></div>
+    <div class="row"><label>Dev / sites</label><div class="money"><input type="number" id="in_dev" oninput="setVal('dev',this.value)"></div></div>
+    <div class="row"><label>Outros</label><div class="money"><input type="number" id="in_outros" oninput="setVal('outros',this.value)"></div></div>
+    <div class="row" style="border-top:1px dashed var(--line);padding-top:9px"><label>💵 Venda de ativo (se caiu esse mês)</label><div class="money"><input type="number" id="in_asset" readonly></div></div>
+    <div class="sub">Entrou no mês: <b id="totIn">R$ 0</b></div>
+  </div>
+
+  <div class="card">
+    <h2>🏠 Contas fixas</h2>
+    <p class="hint">Ajustam sozinhas quando você vende um veículo/apê (aba Ativos).</p>
+    <div id="fixasBody"></div>
+    <div class="sub">Total fixas: <b id="totFix">R$ 0</b></div>
+  </div>
+
+  <div class="card">
+    <h2>💳 Cartões — faturas do mês</h2>
+    <p class="hint">Escolha: pagar 100%, parcelar (Nx → empurra pros próximos meses), mínimo (🚨 rotativo) ou não pagar.</p>
+    <div id="cardsBody"></div>
+    <div class="sub">Você paga em cartão esse mês: <b id="totCard">R$ 0</b></div>
+  </div>
+
+  <div class="card">
+    <h2>🛒 Variáveis</h2>
+    <div class="row"><label>Mercado + combustível + farmácia</label><div class="money"><input type="number" id="in_var" oninput="setVal('variaveis',this.value)"></div></div>
+    <div class="sub">Total variáveis: <b id="totVar">R$ 0</b></div>
+  </div>
+
+  <div class="card">
+    <h2>📈 Visão geral (todos os meses)</h2>
+    <p class="hint">A dívida derretendo e o saldo mês a mês. Saldo vermelho = precisa de venda de ativo.</p>
+    <div class="overview"><table class="ov" id="ovTable"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>🔑 Ativos pra vender</h2>
+    <p class="hint">Liga quando vender e escolhe o mês — o dinheiro entra e as contas do veículo/apê mudam sozinhas.</p>
+    <div id="assetsBody"></div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 Os 2 objetivos</h2>
+    <div class="goalc"><div class="ic">🚀</div><div class="b">
+      <b>Reviver a empresa</b>
+      <div class="row" style="margin:6px 0 2px"><label>Lucro da empresa esse mês</label><div class="money"><input type="number" id="in_lucro" oninput="setVal('lucro',this.value)"></div></div>
+      <div class="bar"><span id="barEmp" style="width:0%"></span></div>
+      <div class="muted" id="empTxt">Meta: R$ 40.000/mês</div>
+    </div></div>
+    <div class="goalc"><div class="ic">🏠</div><div class="b">
+      <b>Fundo do apartamento</b>
+      <div class="row" style="margin:6px 0 2px"><div class="money" style="flex:1"><input type="number" id="in_apeG" placeholder="já guardado" oninput="g('apeG',this.value)"></div><div class="money" style="flex:1"><input type="number" id="in_apeM" placeholder="meta entrada" oninput="g('apeM',this.value)"></div></div>
+      <div class="bar"><span class="g" id="barApe" style="width:0%"></span></div>
+      <div class="muted" id="apeTxt">Defina a meta da entrada</div>
+    </div></div>
+  </div>
+
+  <div class="row" style="gap:9px">
+    <button class="btn ghost" onclick="exportar()">⬇️ Backup</button>
+    <button class="btn ghost" onclick="document.getElementById('imp').click()">⬆️ Restaurar</button>
+  </div>
+  <input type="file" id="imp" style="display:none" accept=".json" onchange="importar(event)">
+  <button class="btn ghost" style="margin-top:9px;color:var(--red)" onclick="if(confirm('Zerar tudo e voltar aos valores de exemplo?')){localStorage.removeItem(KEY);location.reload()}">↺ Recomeçar do exemplo</button>
+  <p class="muted" style="text-align:center;margin-top:12px">Salva sozinho no seu aparelho. Nada vai pra internet.</p>
+</div>
+<div class="flash" id="flash">✓ Salvo</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=v=>(v<0?'-':'')+'R$ '+Math.abs(Math.round(v)).toLocaleString('pt-BR');
+const num=v=>parseFloat(v)||0;
+const MESES=['Nov/26','Dez/26','Jan/27','Fev/27','Mar/27','Abr/27','Mai/27','Jun/27'];
+const KEY='centralFin_v2';
+
+const SCHED={
+  'Thayse Itaú/01':{0:3661.64,1:1942.63,2:1807.39,3:1447.22,4:1447.22,5:478.39},
+  'Thayse Itaú/20':{0:1739.11,1:699.19,2:471.73,3:96},
+  'Thayse Inter/25':{0:2857.72,1:1888.37,2:1546.52,3:1488.83,4:1488.83,5:1488.83},
+  'Thayse Melli/01':{0:1478.46,1:647.54,2:491.39,3:431.23,4:431.23,5:431.23},
+  'Thayse Atacadão/01':{0:856.60,1:614.39,2:614.39,3:614.39,4:614.39,5:357.90},
+  'Claudio Itaú/14':{0:1500,1:1400,2:1400,3:1400,4:400,5:400},
+  'Claudio Inter/01':{0:2500,1:260,2:260,3:260,4:260,5:260},
+  'Claudio Melli/16':{0:800,1:800,2:800,3:800},
+  'Claudio Porto/25':{0:2900,1:1700,2:1500,3:1100,4:1100,5:1100},
+  'Claudio BV/25':{0:1750,1:1200,2:1200,3:1200},
+};
+const CARDS=Object.keys(SCHED);
+const ASSETS=[
+  {key:'carrefour',nome:'Empréstimo Carrefour',sub:'já recebido',valor:12500},
+  {key:'jeep',nome:'Vender o Jeep',sub:'~R$ 20k líquido · corta R$ 2.560/mês',valor:20000},
+  {key:'van',nome:'Vender a van (Boxer)',sub:'~R$ 30k · vira aluguel van do pai R$ 1.500',valor:30000},
+  {key:'ape',nome:'Vender o apê (repasse)',sub:'~R$ 180k · corta R$ 3.600/mês',valor:180000},
+];
+
+let state, cur=0;
+function defaults(){
+  const perMonth=(v)=>Object.fromEntries(MESES.map((_,i)=>[i,v]));
+  const st={saldoInicial:2000, cur:0,
+    freight:perMonth(10000), dev:perMonth(1500), outros:perMonth(0), variaveis:perMonth(3300), lucro:perMonth(0),
+    cardStatus:{}, assets:{carrefour:{on:true,mes:0}, jeep:{on:false,mes:1}, van:{on:false,mes:1}, ape:{on:false,mes:3}},
+    apeG:0, apeM:100000};
+  CARDS.forEach(c=>{st.cardStatus[c]={};});
+  return st;
+}
+function load(){ const r=localStorage.getItem(KEY); state=r?JSON.parse(r):defaults(); cur=state.cur||0; build(); render(); }
+function persist(){ state.cur=cur; localStorage.setItem(KEY,JSON.stringify(state)); flash(); }
+let ft;function flash(){$('flash').classList.add('show');clearTimeout(ft);ft=setTimeout(()=>$('flash').classList.remove('show'),700)}
+
+function compute(){
+  const parcel=new Array(MESES.length).fill(0);
+  CARDS.forEach(c=>{ for(let m=0;m<MESES.length;m++){
+    const s=state.cardStatus[c][m], sch=SCHED[c][m]||0;
+    if(s&&s.tipo==='parc'&&sch>0){ const n=Math.max(2,s.n||6); const p=sch/n;
+      for(let k=1;k<n;k++){ if(m+k<MESES.length) parcel[m+k]+=p; } }
+  }});
+  const months=MESES.map((label,m)=>{
+    const entrou=num(state.freight[m])+num(state.dev[m])+num(state.outros[m]);
+    const apeVendido=state.assets.ape.on && m>=state.assets.ape.mes;
+    const vanVendida=state.assets.van.on && m>=state.assets.van.mes;
+    const jeepVendido=state.assets.jeep.on && m>=state.assets.jeep.mes;
+    let fixas=3502+300+280+600+200+278+2820;
+    fixas+=apeVendido?0:3600;
+    fixas+=(m>=2)?750:0;
+    fixas+=vanVendida?1500:2100;
+    fixas+=jeepVendido?400:2560;
+    let card=parcel[m], rotativo=[], naopago=[], parcelou=[];
+    CARDS.forEach(c=>{ const sch=SCHED[c][m]||0; if(!sch)return;
+      const s=state.cardStatus[c][m]||{tipo:'100'};
+      if(s.tipo==='100') card+=sch;
+      else if(s.tipo==='parc'){ card+=sch/Math.max(2,s.n||6); parcelou.push(c); }
+      else if(s.tipo==='min'){ card+=sch*0.15; rotativo.push(c); }
+      else if(s.tipo==='nao'){ naopago.push(c); }
+    });
+    const variaveis=num(state.variaveis[m]);
+    let asset=0; ASSETS.forEach(a=>{ if(state.assets[a.key].on && state.assets[a.key].mes===m) asset+=a.valor; });
+    const saiu=fixas+card+variaveis;
+    const result=entrou-saiu+asset;
+    let dividaRest=0; for(let k=m;k<MESES.length;k++) CARDS.forEach(c=>dividaRest+=SCHED[c][k]||0);
+    return {label,m,entrou,fixas,card,variaveis,asset,saiu,result,rotativo,naopago,parcelou,dividaRest};
+  });
+  let saldo=num(state.saldoInicial);
+  months.forEach(mo=>{ saldo+=mo.result; mo.saldo=saldo; });
+  return months;
+}
+
+function build(){
+  $('chips').innerHTML=MESES.map((l,i)=>`<div class="chip" id="chip${i}" onclick="cur=${i};render();persist()">${l}</div>`).join('');
+  $('assetsBody').innerHTML=ASSETS.map(a=>{
+    const st=state.assets[a.key];
+    const opts=MESES.map((l,i)=>`<option value="${i}"${st.mes===i?' selected':''}>${l}</option>`).join('');
+    return `<div class="asset"><div class="nm">${a.nome}<small>${a.sub} · ${fmt(a.valor)}</small></div>
+      <select onchange="state.assets['${a.key}'].mes=+this.value;render();persist()">${opts}</select>
+      <div class="tog ${st.on?'on':''}" onclick="state.assets['${a.key}'].on=!state.assets['${a.key}'].on;this.classList.toggle('on');render();persist()"></div></div>`;
+  }).join('');
+}
+
+function render(){
+  const months=compute();
+  MESES.forEach((l,i)=>{ const c=$('chip'+i); c.className='chip'+(i===cur?' active':'')+(months[i].saldo<0?' neg':''); });
+  const mo=months[cur];
+  const cls=mo.result>=0?'green':(mo.result>=-3000?'amber':'red');
+  $('resBox').className='result '+cls;
+  $('resMes').textContent=mo.label;
+  $('resVal').textContent=fmt(mo.result);
+  $('resSaldo').textContent=fmt(mo.saldo);
+  $('resSaldo').style.color=mo.saldo<0?'#ffd4d4':'#fff';
+  $('resEx').textContent=`entrou ${fmt(mo.entrou)}${mo.asset?' + venda '+fmt(mo.asset):''} · saiu ${fmt(mo.saiu)}`;
+  $('in_freight').value=state.freight[cur]||''; $('in_dev').value=state.dev[cur]||'';
+  $('in_outros').value=state.outros[cur]||''; $('in_var').value=state.variaveis[cur]||'';
+  $('in_asset').value=mo.asset?Math.round(mo.asset):''; $('in_lucro').value=state.lucro[cur]||'';
+  $('totIn').textContent=fmt(mo.entrou+mo.asset); $('totVar').textContent=fmt(mo.variaveis);
+  const apeV=state.assets.ape.on&&cur>=state.assets.ape.mes, vanV=state.assets.van.on&&cur>=state.assets.van.mes, jeepV=state.assets.jeep.on&&cur>=state.assets.jeep.mes;
+  const fx=[['Aluguel',3502],['Luz',300],['Internet/celular',280],['Convênio/saúde',600],['Garagem',200],['Fies',278],['Pronampe',2820],
+    ['Apartamento',apeV?0:3600],['Carrefour',cur>=2?750:0],[vanV?'Aluguel van do pai':'Refin van',vanV?1500:2100],[jeepV?'Carro (combustível)':'Financiam. Jeep',jeepV?400:2560]];
+  $('fixasBody').innerHTML=fx.filter(f=>f[1]>0).map(f=>`<div class="row"><label>${f[0]}</label><div class="money"><input type="number" value="${f[1]}" readonly></div></div>`).join('');
+  $('totFix').textContent=fmt(mo.fixas);
+  $('cardsBody').innerHTML=CARDS.map(c=>{
+    const sch=SCHED[c][cur]||0; if(!sch)return '';
+    const s=state.cardStatus[c][cur]||{tipo:'100'};
+    let pago=sch, tag='';
+    if(s.tipo==='100'){pago=sch;tag='<span class="pill g">0 juros</span>';}
+    else if(s.tipo==='parc'){pago=sch/Math.max(2,s.n||6);tag='<span class="pill a">parcelado</span>';}
+    else if(s.tipo==='min'){pago=sch*0.15;tag='<span class="pill r">rotativo!</span>';}
+    else if(s.tipo==='nao'){pago=0;tag='<span class="pill r">não pago</span>';}
+    const nInput=s.tipo==='parc'?`<div class="crnx">em <input type="number" value="${s.n||6}" min="2" onchange="setN('${c}',this.value)">× de ${fmt(pago)} — empurra pros próximos meses</div>`:'';
+    return `<div class="cardrow">
+      <div class="crtop"><span class="nm">${c}</span><span class="fat">fatura ${fmt(sch)}</span></div>
+      <div class="crctrl">
+        <select onchange="setStatus('${c}',this.value)">
+          <option value="100"${s.tipo==='100'?' selected':''}>Pagar 100%</option>
+          <option value="parc"${s.tipo==='parc'?' selected':''}>Parcelar</option>
+          <option value="min"${s.tipo==='min'?' selected':''}>Mínimo</option>
+          <option value="nao"${s.tipo==='nao'?' selected':''}>Não pagar</option>
+        </select>${tag}<span class="pay">paga ${fmt(pago)}</span>
+      </div>${nInput}</div>`;
+  }).join('');
+  $('totCard').textContent=fmt(mo.card);
+  renderFlags(mo,months);
+  $('ovTable').innerHTML='<tr><th>Mês</th><th>Entrou</th><th>Saiu</th><th>Result</th><th>Saldo</th><th>Dív.cartão</th></tr>'+
+    months.map((x,i)=>`<tr class="${i===cur?'sel':''}"><td>${x.label}</td><td>${fmt(x.entrou+x.asset)}</td><td>${fmt(x.saiu)}</td>
+      <td class="${x.result>=0?'pos':'negv'}">${fmt(x.result)}</td><td class="${x.saldo>=0?'pos':'negv'}">${fmt(x.saldo)}</td><td>${fmt(x.dividaRest)}</td></tr>`).join('');
+  const luc=num(state.lucro[cur]); $('barEmp').style.width=Math.min(100,luc/40000*100)+'%';
+  $('empTxt').textContent=`Lucro: ${fmt(luc)} de R$ 40k (${Math.round(luc/40000*100)}%)`;
+  $('in_apeG').value=state.apeG||''; $('in_apeM').value=state.apeM||'';
+  $('barApe').style.width=(state.apeM>0?Math.min(100,state.apeG/state.apeM*100):0)+'%';
+  $('apeTxt').textContent=state.apeM>0?`Guardado ${fmt(state.apeG)} de ${fmt(state.apeM)} (${Math.round(state.apeG/state.apeM*100)}%)`:'Defina a meta da entrada';
+}
+
+function renderFlags(mo,months){
+  let h='';
+  if(mo.saldo<0) h+=`<div class="flag red"><b>⚠️ Saldo negativo (${fmt(mo.saldo)}).</b> Falta caixa nesse mês — antecipe uma venda de ativo (Jeep/van), ou parcele mais cartão.</div>`;
+  if(mo.result<-3000&&mo.saldo>=0) h+=`<div class="flag amber"><b>Mês no vermelho (${fmt(mo.result)})</b>, mas o saldo cobre. Vigie se melhora nos próximos.</div>`;
+  if(mo.result>=0) h+=`<div class="flag green"><b>Mês no azul (+${fmt(mo.result)})!</b> Sobra → fundo do apê ou abater dívida.</div>`;
+  if(mo.rotativo.length) h+=`<div class="flag red">🚨 <b>Rotativo:</b> ${mo.rotativo.join(', ')} no mínimo = ~15%/mês. Troca por "Parcelar" se der.</div>`;
+  if(mo.naopago.length) h+=`<div class="flag amber"><b>Não pagos:</b> ${mo.naopago.join(', ')} — liga e renegocia antes de negativar.</div>`;
+  if(mo.parcelou.length&&!mo.rotativo.length) h+=`<div class="flag green">✅ Parcelou (${mo.parcelou.join(', ')}) — juro menor que rotativo. Olha os próximos meses: a parcela foi pra lá.</div>`;
+  if(mo.m===0) h+=`<div class="flag navy">📌 <b>Novembro é o pico do cartão.</b> Depois derrete (veja "Dív.cartão" na visão geral). Atravessa esse e afrouxa.</div>`;
+  $('flags').innerHTML=h;
+}
+
+function setVal(k,v){ state[k][cur]=num(v); render(); persist(); }
+function g(k,v){ state[k]=num(v); render(); persist(); }
+function setStatus(c,t){ state.cardStatus[c][cur]={tipo:t,n:(state.cardStatus[c][cur]||{}).n||6}; render(); persist(); }
+function setN(c,n){ state.cardStatus[c][cur]={tipo:'parc',n:Math.max(2,+n||6)}; render(); persist(); }
+
+function exportar(){const b=new Blob([localStorage.getItem(KEY)||'{}'],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='central-financeira-backup.json';a.click();}
+function importar(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{JSON.parse(r.result);localStorage.setItem(KEY,r.result);load();alert('Restaurado!')}catch{alert('Arquivo inválido')}};r.readAsText(f)}
+
+load();
+</script>
+</body>
+</html>
